@@ -1,11 +1,13 @@
-export interface ImplementMe {
-	myFunc(): Promise<string>;
-}
+export class Composer {
+	constructor(readonly id: string, _options: any) {
+		// TODO
+	}
 
-const moo = 1;
+	async state() {
+		// TODO
+	}
 
-export class ImplementClass implements ImplementMe {
-	public async myFunc() {
-		return `I need implementing! ${moo}`;
+	async update(_target: any) {
+		// TODO
 	}
 }

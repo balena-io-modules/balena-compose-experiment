@@ -23,7 +23,7 @@
     "build/"
   ],
   "scripts": {
-    "clean": "rimraf build",
+    "clean": "rimraf build bin",
     "build": "npm run clean && tsc",
     "lint": "balena-lint --typescript lib tests",
     "lint-fix": "balena-lint --typescript --fix lib tests",
