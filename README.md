@@ -82,7 +82,7 @@ and adapt this code to the requirements defined for this library.
 
 ## Tasks (non-exhaustive)
 
-- [ ] Setup typescript repo
+- [x] Setup typescript repo
 - [ ] Extract and review typescript types for `Composer`, `Service`, `Volume` and `Network` from supervisor codebase
 - [ ] Define public APIs for the libraries
 - [ ] Write tests to specify API behavior
