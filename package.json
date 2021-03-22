@@ -37,6 +37,8 @@
     "@types/chai": "^4.2.11",
     "@types/chai-as-promised": "^7.1.2",
     "@types/mocha": "^7.0.2",
+    "@types/mz": "^2.7.3",
+    "@types/request": "^2.48.5",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "husky": "^4.2.5",
@@ -46,5 +48,28 @@
     "ts-node": "^8.10.1",
     "typescript": "^3.9.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@types/dockerode": "2.5.28",
+    "@types/lockfile": "^1.0.1",
+    "@types/memoizee": "^0.4.5",
+    "@types/rwlock": "^5.0.2",
+    "@types/shell-quote": "^1.7.0",
+    "deep-object-diff": "^1.1.0",
+    "docker-delta": "^2.2.11",
+    "docker-progress": "^4.0.3",
+    "docker-toolbelt": "^3.3.10",
+    "dockerode": "^2.5.8",
+    "duration-js": "^4.0.0",
+    "lockfile": "^1.0.4",
+    "lodash": "^4.17.21",
+    "logform": "^2.2.0",
+    "memoizee": "^0.4.15",
+    "mz": "^2.7.0",
+    "request": "^2.88.2",
+    "resumable-request": "^2.0.1",
+    "rwlock": "^5.0.0",
+    "shell-quote": "^1.7.2",
+    "typed-error": "^3.2.1",
+    "winston": "^3.3.3"
+  }
 }
