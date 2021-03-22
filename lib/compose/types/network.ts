@@ -83,7 +83,7 @@ export interface DockerNetworkConfig {
 	Driver?: string;
 	CheckDuplicate: boolean;
 	IPAM?: {
-		Driver?: string;
+		Driver: string;
 		Config?: DockerIPAMConfig[];
 		Options?: Dictionary<string>;
 	};

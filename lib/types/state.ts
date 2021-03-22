@@ -1,7 +1,7 @@
 import { ComposeNetworkConfig } from '../compose/types/network';
 import { ServiceComposeConfig } from '../compose/types/service';
 import { ComposeVolumeConfig } from '../compose/volume';
-import { EnvVarObject, LabelObject } from '../lib/types';
+import { EnvVarObject, LabelObject } from '../types';
 
 import App from '../compose/app';
 
@@ -89,6 +89,18 @@ export interface TargetState {
 		}>;
 	};
 }
+
+export interface DatabaseApp {
+	name: string;
+	releaseId: number;
+	commit: string;
+	appId: number;
+	services: string;
+	networks: string;
+	volumes: string;
+	source: string;
+}
+export type DatabaseApps = DatabaseApp[];
 
 export type LocalTargetState = TargetState['local'];
 export type TargetApplications = LocalTargetState['apps'];

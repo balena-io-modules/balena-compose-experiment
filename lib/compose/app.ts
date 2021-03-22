@@ -8,24 +8,24 @@ import Service from './service';
 
 import * as imageManager from './images';
 import type { Image } from './images';
-import * as applicationManager from './application-manager';
+//import * as applicationManager from './application-manager';
 import {
 	CompositionStep,
 	generateStep,
 	CompositionStepAction,
 } from './composition-steps';
-import * as targetStateCache from '../device-state/target-state-cache';
-import * as dockerUtils from '../lib/docker-utils';
-import constants = require('../lib/constants');
+import { DatabaseApp } from '../types/state';
+import * as dockerUtils from './docker-utils';
 
 import { getStepsFromStrategy } from './update-strategies';
 
-import { InternalInconsistencyError, NotFoundError } from '../lib/errors';
-import * as config from '../config';
-import { checkTruthy, checkString } from '../lib/validation';
+import { NotFoundError } from '../errors';
+import { InternalInconsistencyError } from '../errors'
+import config from '../config';
+import { checkTruthy, checkString } from '../validation';
 import { ServiceComposeConfig, DeviceMetadata } from './types/service';
 import { ImageInspectInfo } from 'dockerode';
-import { pathExistsOnHost } from '../lib/fs-utils';
+import { pathExistsOnHost } from './fs-utils';
 
 export interface AppConstructOpts {
 	appId: number;
@@ -162,19 +162,19 @@ export class App {
 			),
 		);
 
-		if (
-			steps.length === 0 &&
-			target.commit != null &&
-			this.commit !== target.commit
-		) {
-			// TODO: The next PR should change this to support multiapp commit values
-			steps.push(
-				generateStep('updateCommit', {
-					target: target.commit,
-					appId: this.appId,
-				}),
-			);
-		}
+		// if (
+		// 	steps.length === 0 &&
+		// 	target.commit != null &&
+		// 	this.commit !== target.commit
+		// ) {
+		// 	// TODO: The next PR should change this to support multiapp commit values
+		// 	steps.push(
+		// 		generateStep('updateCommit', {
+		// 			target: target.commit,
+		// 			appId: this.appId,
+		// 		}),
+		// 	);
+		// }
 
 		return steps;
 	}
@@ -340,13 +340,6 @@ export class App {
 				return false;
 			}
 
-			// Check if we previously remember starting it
-			if (
-				applicationManager.containerStarted[serviceCurrent.containerId!] != null
-			) {
-				return false;
-			}
-
 			// If the config otherwise matches, then we should be running
 			return isEqualExceptForRunningState(serviceCurrent, serviceTarget);
 		};
@@ -362,11 +355,13 @@ export class App {
 			serviceTarget: Service,
 		) => {
 			// check that we want to stop it, and that it isn't stopped
+			console.warn('CALLED SHOULD BE STOPPED');
+			console.log(serviceCurrent);
 			return (
-				serviceTarget.config.running === false &&
+				serviceTarget.config.running === false
 				// When we issue a stop step, we remove the containerId from this structure.
 				// We check if the container has been removed first, so that we can ensure we're not providing multiple stop steps.
-				applicationManager.containerStarted[serviceCurrent.containerId!] == null
+				// applicationManager.containerStarted[serviceCurrent.containerId!] == null
 			);
 		};
 
@@ -742,7 +737,7 @@ export class App {
 	}
 
 	public static async fromTargetState(
-		app: targetStateCache.DatabaseApp,
+		app: DatabaseApp,
 	): Promise<App> {
 		const volumes = _.mapValues(JSON.parse(app.volumes) ?? {}, (conf, name) => {
 			if (conf == null) {
@@ -762,14 +757,12 @@ export class App {
 		);
 
 		const [
-			opts,
 			supervisorApiHost,
 			hostPathExists,
 			hostnameOnHost,
 		] = await Promise.all([
-			config.get('extendedEnvOptions'),
 			dockerUtils
-				.getNetworkGateway(constants.supervisorNetworkInterface)
+				.getNetworkGateway(<string>config.get('supervisorNetworkInterface'))
 				.catch(() => '127.0.0.1'),
 			(async () => ({
 				firmware: await pathExistsOnHost('/lib/firmware'),
@@ -778,7 +771,7 @@ export class App {
 			(async () =>
 				_.trim(
 					await fs.readFile(
-						path.join(constants.rootMountPoint, '/etc/hostname'),
+						path.join(config.get('rootMountPoint'), '/etc/hostname'),
 						'utf8',
 					),
 				))(),
@@ -788,8 +781,7 @@ export class App {
 			appName: app.name,
 			supervisorApiHost,
 			hostPathExists,
-			hostnameOnHost,
-			...opts,
+			hostnameOnHost
 		};
 
 		// In the db, the services are an array, but here we switch them to an

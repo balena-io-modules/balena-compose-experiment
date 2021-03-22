@@ -3,8 +3,8 @@ import Duration = require('duration-js');
 import * as _ from 'lodash';
 import { parse as parseCommand } from 'shell-quote';
 
-import * as constants from '../lib/constants';
-import { checkTruthy } from '../lib/validation';
+import constants from '../constants';
+import { checkTruthy } from '../validation';
 import { Service } from './service';
 import {
 	ComposeHealthcheck,
@@ -16,9 +16,7 @@ import {
 	ServiceHealthcheck,
 } from './types/service';
 
-import log from '../lib/supervisor-console';
-
-import * as apiKeys from '../lib/api-keys';
+import log from '../console';
 
 export function camelCaseConfig(
 	literalConfig: ConfigMap,
@@ -371,10 +369,10 @@ export async function addFeaturesFromLabels(
 		},
 		'io.balena.features.supervisor-api': async () => {
 			// create a app/service specific API secret
-			const apiSecret = await apiKeys.generateScopedKey(
-				service.appId,
-				service.serviceId,
-			);
+			// const apiSecret = await apiKeys.generateScopedKey(
+			// 	service.appId,
+			// 	service.serviceId,
+			// );
 
 			const host = (() => {
 				if (service.config.networkMode === 'host') {
@@ -385,7 +383,7 @@ export async function addFeaturesFromLabels(
 				}
 			})();
 
-			setEnvVariables('SUPERVISOR_API_KEY', apiSecret);
+			// setEnvVariables('SUPERVISOR_API_KEY', apiSecret);
 			setEnvVariables('SUPERVISOR_PORT', options.listenPort.toString());
 			setEnvVariables('SUPERVISOR_HOST', host);
 			setEnvVariables(

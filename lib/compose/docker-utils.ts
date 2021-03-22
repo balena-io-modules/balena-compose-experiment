@@ -6,19 +6,30 @@ import * as memoizee from 'memoizee';
 import { applyDelta, OutOfSyncError } from 'docker-delta';
 import DockerToolbelt = require('docker-toolbelt');
 
-import { SchemaReturn } from '../config/schema-type';
-import { envArrayToObject } from './conversions';
+import { envArrayToObject } from '../conversions';
 import {
 	DeltaStillProcessingError,
 	ImageAuthenticationError,
 	InvalidNetGatewayError,
-} from './errors';
+} from '../errors';
 import * as request from './request';
-import { EnvVarObject } from './types';
+import { EnvVarObject } from '../types';
 
-import log from './supervisor-console';
+import log from '../console';
 
-export type FetchOptions = SchemaReturn<'fetchOptions'>;
+export type FetchOptions = {
+	uuid: string | null | undefined;
+	currentApiKey: string;
+	apiEndpoint: string;
+	deltaEndpoint: string;
+	delta: boolean;
+	deltaRequestTimeout: number;
+	deltaApplyTimeout: number;
+	deltaRetryCount: number;
+	deltaRetryInterval: number;
+	deltaVersion: number;
+};
+
 export type DeltaFetchOptions = FetchOptions & {
 	deltaSourceId: string;
 	deltaSource: string;

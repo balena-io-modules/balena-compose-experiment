@@ -2,8 +2,8 @@ import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { fs } from 'mz';
 import * as Path from 'path';
-import * as constants from './constants';
-import { ENOENT } from './errors';
+import constants from '../constants';
+import { ENOENT } from '../errors';
 
 export function writeAndSyncFile(
 	path: string,

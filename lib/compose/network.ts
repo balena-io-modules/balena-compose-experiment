@@ -1,11 +1,11 @@
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 
-import { docker } from '../lib/docker-utils';
-import { InvalidAppIdError } from '../lib/errors';
-import logTypes = require('../lib/log-types');
-import { checkInt } from '../lib/validation';
+import { docker } from './docker-utils';
+import { InvalidAppIdError } from '../errors';
+import { checkInt } from '../validation';
 import * as logger from '../logger';
+import logTypes = require('../log-types');
 import * as ComposeUtils from './utils';
 
 import {
@@ -19,7 +19,7 @@ import {
 import {
 	InvalidNetworkConfigurationError,
 	InvalidNetworkNameError,
-} from './errors';
+} from '../errors';
 
 export class Network {
 	public appId: number;
@@ -130,7 +130,7 @@ export class Network {
 			network: { name: this.name },
 		});
 
-		return await docker.createNetwork(this.toDockerConfig());
+		await docker.createNetwork(this.toDockerConfig());
 	}
 
 	public toDockerConfig(): DockerNetworkConfig {

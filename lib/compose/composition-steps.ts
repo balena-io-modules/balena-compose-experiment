@@ -1,8 +1,6 @@
 import * as _ from 'lodash';
 
-import * as config from '../config';
-
-import * as applicationManager from './application-manager';
+import config from '../config'
 import type { Image } from './images';
 import * as images from './images';
 import Network from './network';
@@ -10,11 +8,9 @@ import Service from './service';
 import * as serviceManager from './service-manager';
 import Volume from './volume';
 
-import { checkTruthy } from '../lib/validation';
 import * as networkManager from './network-manager';
 import * as volumeManager from './volume-manager';
 import { DeviceReportFields } from '../types/state';
-import * as commitStore from './commit';
 
 interface BaseCompositionStepArgs {
 	force?: boolean;
@@ -61,10 +57,6 @@ interface CompositionStepArgs {
 	start: {
 		target: Service;
 	} & BaseCompositionStepArgs;
-	updateCommit: {
-		target: string;
-		appId: number;
-	};
 	handover: {
 		current: Service;
 		target: Service;
@@ -172,7 +164,7 @@ export function getExecutors(app: {
 					await serviceManager.kill(step.current);
 					app.callbacks.containerKilled(step.current.containerId);
 				},
-			);
+			); 
 		},
 		remove: async (step) => {
 			// Only called for dead containers, so no need to
@@ -180,9 +172,7 @@ export function getExecutors(app: {
 			await serviceManager.remove(step.current);
 		},
 		updateMetadata: (step) => {
-			const skipLock =
-				step.skipLock ||
-				checkTruthy(step.current.config.labels['io.balena.legacy-container']);
+			const skipLock = step.skipLock;
 			return app.lockFn(
 				step.current.appId,
 				{
@@ -209,18 +199,16 @@ export function getExecutors(app: {
 				},
 			);
 		},
-		stopAll: async (step) => {
-			await applicationManager.stopAll({
-				force: step.force,
-				skipLock: step.skipLock,
-			});
+		stopAll: async (_step) => {
+			// await applicationManager.stopAll({
+			// 	force: step.force,
+			// 	skipLock: step.skipLock,
+			// });
+			console.log('stopAll not implemented');
 		},
 		start: async (step) => {
 			const container = await serviceManager.start(step.target);
 			app.callbacks.containerStarted(container.id);
-		},
-		updateCommit: async (step) => {
-			await commitStore.upsertCommitForApp(step.appId, step.target);
 		},
 		handover: (step) => {
 			return app.lockFn(
@@ -237,10 +225,14 @@ export function getExecutors(app: {
 		fetch: async (step) => {
 			const startTime = process.hrtime();
 			app.callbacks.fetchStart();
-			const [fetchOpts, availableImages] = await Promise.all([
+			const [fetchOpts, availableServices] = await Promise.all([
 				config.get('fetchOptions'),
-				images.getAvailable(),
+				serviceManager.getAll(),
 			]);
+
+			// TODO: serviceManager.getAll may not contain all services
+			// at this point, we might want to pass them as arguments to fetch
+			const availableImages = images.getAvailable(availableServices);
 
 			const opts = {
 				deltaSource: app.callbacks.bestDeltaSource(step.image, availableImages),
@@ -266,17 +258,20 @@ export function getExecutors(app: {
 				step.serviceName,
 			);
 		},
-		removeImage: async (step) => {
-			await images.remove(step.image);
+		removeImage: async (_step) => {
+			console.error('removeImage action not implemented');
+			// await images.remove(step.image);
 		},
-		saveImage: async (step) => {
-			await images.save(step.image);
+		saveImage: async (_step) => {
+			console.error('saveImage action not implemented');
+			// await images.save(step.image);
 		},
 		cleanup: async () => {
-			const localMode = await config.get('localMode');
-			if (!localMode) {
-				await images.cleanup();
-			}
+			console.error('cleanup action not implemented');
+			// const localMode = await config.get('localMode');
+			// if (!localMode) {
+			// 	await images.cleanup();
+			// }
 		},
 		createNetwork: async (step) => {
 			await networkManager.create(step.target);

@@ -76,4 +76,4 @@ if (process.env.DOCKER_HOST == null) {
 	process.env.DOCKER_HOST = `unix://${constants.dockerSocket}`;
 }
 
-export = constants;
+export default constants;

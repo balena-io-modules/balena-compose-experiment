@@ -1,57 +1,31 @@
 import * as Bluebird from 'bluebird';
 import * as Dockerode from 'dockerode';
-import { EventEmitter } from 'events';
-import { isLeft } from 'fp-ts/lib/Either';
-import * as JSONStream from 'JSONStream';
 import * as _ from 'lodash';
 import { fs } from 'mz';
-import StrictEventEmitter from 'strict-event-emitter-types';
 
-import * as config from '../config';
-import { docker } from '../lib/docker-utils';
+import config from '../config';
+import { docker } from './docker-utils';
 import * as logger from '../logger';
 
-import { PermissiveNumber } from '../config/types';
-import constants = require('../lib/constants');
 import {
 	InternalInconsistencyError,
 	NotFoundError,
 	StatusCodeError,
-} from '../lib/errors';
-import * as LogTypes from '../lib/log-types';
-import { checkInt, isValidDeviceName } from '../lib/validation';
+} from '../errors';
+import * as LogTypes from '../log-types';
+import { checkInt, isValidDeviceName } from '../validation';
 import { Service } from './service';
 import { serviceNetworksToDockerNetworks } from './utils';
 
-import log from '../lib/supervisor-console';
-import logMonitor from '../logging/monitor';
-
-interface ServiceManagerEvents {
-	change: void;
-}
-type ServiceManagerEventEmitter = StrictEventEmitter<
-	EventEmitter,
-	ServiceManagerEvents
->;
-const events: ServiceManagerEventEmitter = new EventEmitter();
+import log from '../console';
 
 interface KillOpts {
 	removeContainer?: boolean;
 	wait?: boolean;
 }
 
-export const on: typeof events['on'] = events.on.bind(events);
-export const once: typeof events['once'] = events.once.bind(events);
-export const removeListener: typeof events['removeListener'] = events.removeListener.bind(
-	events,
-);
-export const removeAllListeners: typeof events['removeAllListeners'] = events.removeAllListeners.bind(
-	events,
-);
-
 // Whether a container has died, indexed by ID
 const containerHasDied: Dictionary<boolean> = {};
-let listening = false;
 // Volatile state of containers, indexed by containerId (or random strings if
 // we don't yet have an id)
 const volatileState: Dictionary<Partial<Service>> = {};
@@ -167,21 +141,6 @@ export async function handover(current: Service, target: Service) {
 	await kill(current);
 }
 
-export async function killAllLegacy(): Promise<void> {
-	// Containers haven't been normalized (this is an updated supervisor)
-	const supervisorImageId = (
-		await docker.getImage(constants.supervisorImage).inspect()
-	).Id;
-
-	for (const container of await docker.listContainers({ all: true })) {
-		if (container.ImageID !== supervisorImageId) {
-			await killContainer(container.Id, {
-				serviceName: 'legacy',
-			});
-		}
-	}
-}
-
 export function kill(service: Service, opts: KillOpts = {}) {
 	if (service.containerId == null) {
 		throw new InternalInconsistencyError(
@@ -224,7 +183,7 @@ export async function stopAllByAppId(appId: number) {
 }
 
 export async function create(service: Service) {
-	const mockContainerId = config.newUniqueKey();
+
 	try {
 		const existing = await get(service);
 		if (existing.containerId == null) {
@@ -262,27 +221,30 @@ export async function create(service: Service) {
 			containerIds: serviceContainerIds,
 		});
 		const nets = serviceNetworksToDockerNetworks(service.extraNetworksToJoin());
+		const serviceIdentifierForLog = service.serviceName ?? service.imageId.toString();
 
 		logger.logSystemEvent(LogTypes.installService, { service });
-		reportNewStatus(mockContainerId, service, 'Installing');
+		reportNewStatus(serviceIdentifierForLog, service, 'Installing');
 
-		const container = await docker.createContainer(conf);
-		service.containerId = container.id;
-
-		await Promise.all(
-			_.map((nets || {}).EndpointsConfig, (endpointConfig, name) =>
-				docker.getNetwork(name).connect({
-					Container: container.id,
-					EndpointConfig: endpointConfig,
-				}),
-			),
-		);
-
-		logger.logSystemEvent(LogTypes.installServiceSuccess, { service });
-		return container;
-	} finally {
-		reportChange(mockContainerId);
-	}
+		try {
+			const container = await docker.createContainer(conf);
+			service.containerId = container.id;
+	
+			await Promise.all(
+				_.map((nets || {}).EndpointsConfig, (endpointConfig, name) =>
+					docker.getNetwork(name).connect({
+						Container: container.id,
+						EndpointConfig: endpointConfig,
+					}),
+				),
+			);
+	
+			logger.logSystemEvent(LogTypes.installServiceSuccess, { service });
+			return container;
+		} finally {
+			reportChange(serviceIdentifierForLog);
+		}
+	} 
 }
 
 export async function start(service: Service) {
@@ -303,13 +265,13 @@ export async function start(service: Service) {
 		} catch (e) {
 			// Get the statusCode from the original cause and make sure it's
 			// definitely an int for comparison reasons
-			const maybeStatusCode = PermissiveNumber.decode(e.statusCode);
-			if (isLeft(maybeStatusCode)) {
+			const maybeStatusCode = parseInt(e.statusCode);
+			if (maybeStatusCode == NaN) {
 				shouldRemove = true;
 				err = new Error(`Could not parse status code from docker error:  ${e}`);
 				throw err;
 			}
-			const statusCode = maybeStatusCode.right;
+			const statusCode = maybeStatusCode;
 			const message = e.message;
 
 			// 304 means the container was already started, precisely what we want
@@ -365,90 +327,90 @@ export async function start(service: Service) {
 	}
 }
 
-export function listenToEvents() {
-	if (listening) {
-		return;
-	}
+// export function listenToEvents() {
+// 	if (listening) {
+// 		return;
+// 	}
 
-	listening = true;
+// 	listening = true;
 
-	const listen = async () => {
-		const stream = await docker.getEvents({
-			filters: { type: ['container'] } as any,
-		});
+// 	const listen = async () => {
+// 		const stream = await docker.getEvents({
+// 			filters: { type: ['container'] } as any,
+// 		});
 
-		stream.on('error', (e) => {
-			log.error(`Error on docker events stream:`, e);
-		});
-		const parser = JSONStream.parse();
-		parser.on('data', async (data: { status: string; id: string }) => {
-			if (data != null) {
-				const status = data.status;
-				if (status === 'die' || status === 'start' || status === 'destroy') {
-					try {
-						let service: Service | null = null;
-						try {
-							service = await getByDockerContainerId(data.id);
-						} catch (e) {
-							if (!NotFoundError(e)) {
-								throw e;
-							}
-						}
-						if (service != null) {
-							events.emit('change');
-							if (status === 'die') {
-								logger.logSystemEvent(LogTypes.serviceExit, { service });
-								containerHasDied[data.id] = true;
-							} else if (status === 'start' && containerHasDied[data.id]) {
-								delete containerHasDied[data.id];
-								logger.logSystemEvent(LogTypes.serviceRestart, {
-									service,
-								});
+// 		stream.on('error', (e) => {
+// 			log.error(`Error on docker events stream:`, e);
+// 		});
+// 		const parser = JSONStream.parse();
+// 		parser.on('data', async (data: { status: string; id: string }) => {
+// 			if (data != null) {
+// 				const status = data.status;
+// 				if (status === 'die' || status === 'start' || status === 'destroy') {
+// 					try {
+// 						let service: Service | null = null;
+// 						try {
+// 							service = await getByDockerContainerId(data.id);
+// 						} catch (e) {
+// 							if (!NotFoundError(e)) {
+// 								throw e;
+// 							}
+// 						}
+// 						if (service != null) {
+// 							events.emit('change');
+// 							if (status === 'die') {
+// 								logger.logSystemEvent(LogTypes.serviceExit, { service });
+// 								containerHasDied[data.id] = true;
+// 							} else if (status === 'start' && containerHasDied[data.id]) {
+// 								delete containerHasDied[data.id];
+// 								logger.logSystemEvent(LogTypes.serviceRestart, {
+// 									service,
+// 								});
 
-								const serviceId = service.serviceId;
-								const imageId = service.imageId;
-								if (serviceId == null || imageId == null) {
-									throw new InternalInconsistencyError(
-										`serviceId and imageId not defined for service: ${service.serviceName} in ServiceManager.listenToEvents`,
-									);
-								}
-								logger.attach(data.id, {
-									serviceId,
-									imageId,
-								});
-							} else if (status === 'destroy') {
-								await logMonitor.detach(data.id);
-							}
-						}
-					} catch (e) {
-						log.error('Error on docker event:', e, e.stack);
-					}
-				}
-			}
-		});
+// 								const serviceId = service.serviceId;
+// 								const imageId = service.imageId;
+// 								if (serviceId == null || imageId == null) {
+// 									throw new InternalInconsistencyError(
+// 										`serviceId and imageId not defined for service: ${service.serviceName} in ServiceManager.listenToEvents`,
+// 									);
+// 								}
+// 								logger.attach(data.id, {
+// 									serviceId,
+// 									imageId,
+// 								});
+// 							} else if (status === 'destroy') {
+// 								await logMonitor.detach(data.id);
+// 							}
+// 						}
+// 					} catch (e) {
+// 						log.error('Error on docker event:', e, e.stack);
+// 					}
+// 				}
+// 			}
+// 		});
 
-		return new Promise((resolve, reject) => {
-			parser
-				.on('error', (e: Error) => {
-					log.error('Error on docker events stream:', e);
-					reject(e);
-				})
-				.on('end', resolve);
-			stream.pipe(parser);
-		});
-	};
+// 		return new Promise((resolve, reject) => {
+// 			parser
+// 				.on('error', (e: Error) => {
+// 					log.error('Error on docker events stream:', e);
+// 					reject(e);
+// 				})
+// 				.on('end', resolve);
+// 			stream.pipe(parser);
+// 		});
+// 	};
 
-	Bluebird.resolve(listen())
-		.catch((e) => {
-			log.error('Error listening to events:', e, e.stack);
-		})
-		.finally(() => {
-			listening = false;
-			setTimeout(listenToEvents, 1000);
-		});
+// 	Bluebird.resolve(listen())
+// 		.catch((e) => {
+// 			log.error('Error listening to events:', e, e.stack);
+// 		})
+// 		.finally(() => {
+// 			listening = false;
+// 			setTimeout(listenToEvents, 1000);
+// 		});
 
-	return;
-}
+// 	return;
+// }
 
 export async function attachToRunning() {
 	const services = await getAll();
@@ -492,7 +454,6 @@ function reportChange(containerId?: string, status?: Partial<Service>) {
 			delete volatileState[containerId];
 		}
 	}
-	events.emit('change');
 }
 
 function reportNewStatus(
@@ -535,13 +496,12 @@ function killContainer(
 			.catch((e) => {
 				// Get the statusCode from the original cause and make sure it's
 				// definitely an int for comparison reasons
-				const maybeStatusCode = PermissiveNumber.decode(e.statusCode);
-				if (isLeft(maybeStatusCode)) {
+				const statusCode = parseInt(e.statusCode);
+				if (statusCode == NaN) {
 					throw new Error(
 						`Could not parse status code from docker error:  ${e}`,
 					);
 				}
-				const statusCode = maybeStatusCode.right;
 
 				// 304 means the container was already stopped, so we can just remove it
 				if (statusCode === 304) {
@@ -637,12 +597,4 @@ function waitToKill(service: Service, timeout: number | string) {
 				);
 			}
 		});
-
-	log.info(
-		`Waiting for handover to be completed for service: ${service.serviceName}`,
-	);
-
-	return wait().then(() => {
-		log.success(`Handover complete for service ${service.serviceName}`);
-	});
 }

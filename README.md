@@ -110,3 +110,8 @@ and adapt this code to the requirements defined for this library.
 - Improve module isolation and external state manipulation
 - Reduce the need for external dependencies whenever possible.
 - Look for ways to make code more declarative
+
+
+# Future goals
+
+Support compose the compose specification https://compose-spec.io/ 

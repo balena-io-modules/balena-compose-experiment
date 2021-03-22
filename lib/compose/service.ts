@@ -4,9 +4,9 @@ import Duration = require('duration-js');
 import * as _ from 'lodash';
 import * as path from 'path';
 
-import * as conversions from '../lib/conversions';
-import { checkInt } from '../lib/validation';
-import { InternalInconsistencyError } from '../lib/errors';
+import * as conversions from '../conversions';
+import { checkInt } from '../validation';
+import { InternalInconsistencyError } from '../errors';
 import { DockerPortOptions, PortMap } from './ports';
 import {
 	ConfigMap,
@@ -18,12 +18,12 @@ import {
 } from './types/service';
 import * as ComposeUtils from './utils';
 
-import * as constants from '../lib/constants';
-import * as updateLock from '../lib/update-lock';
+import constants from '../constants';
+import * as updateLock from '../update-lock';
 import { sanitiseComposeConfig } from './sanitise';
 
-import log from '../lib/supervisor-console';
-import { EnvVarObject } from '../lib/types';
+import log from '../console';
+import { EnvVarObject } from '../types';
 
 const SERVICE_NETWORK_MODE_REGEX = /service:\s*(.+)/;
 const CONTAINER_NETWORK_MODE_REGEX = /container:\s*(.+)/;

@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 
 import { EnvVarObject } from './types';
 
-import log from '../lib/supervisor-console';
+import log from './console';
 
 export function envArrayToObject(env: string[]): EnvVarObject {
 	const toPair = (keyVal: string) => {

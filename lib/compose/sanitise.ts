@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 
 import { ConfigMap, ServiceComposeConfig } from './types/service';
 
-import log from '../lib/supervisor-console';
+import log from '../console';
 
 // TODO: Generate these fields from the interface we define
 // in service-types.

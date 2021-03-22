@@ -7,11 +7,17 @@
 		"removeComments": true,
 		"sourceMap": true,
 		"strict": true,
-		"target": "es2015",
+		"strictPropertyInitialization": false,
+		"target": "es2019",
 		"declaration": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"preserveConstEnums": true,
+		"resolveJsonModule": true
 	},
 	"include": [
-		"lib/**/*.ts"
+		"lib/**/*",
+		"src/**/*",
+		"test/**/*",
+		"typings/**/*.d.ts"
 	]
 }

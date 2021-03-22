@@ -2,14 +2,14 @@ import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { fs } from 'mz';
 
-import * as constants from '../lib/constants';
-import { docker } from '../lib/docker-utils';
-import { ENOENT, NotFoundError } from '../lib/errors';
-import logTypes = require('../lib/log-types');
+import constants from '../constants';
+import { docker } from './docker-utils';
+import { ENOENT, NotFoundError } from '../errors';
+import logTypes = require('../log-types');
 import * as logger from '../logger';
 import { Network } from './network';
 
-import log from '../lib/supervisor-console';
+import log from '../console';
 import { ResourceRecreationAttemptError } from './errors';
 
 export function getAll(): Bluebird<Network[]> {

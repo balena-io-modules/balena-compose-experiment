@@ -3,12 +3,12 @@ import assign = require('lodash/assign');
 import isEqual = require('lodash/isEqual');
 import omitBy = require('lodash/omitBy');
 
-import constants = require('../lib/constants');
-import { docker } from '../lib/docker-utils';
-import { InternalInconsistencyError } from '../lib/errors';
-import * as LogTypes from '../lib/log-types';
-import { LabelObject } from '../lib/types';
+import constants from '../constants';
+import { docker } from './docker-utils';
+import { InternalInconsistencyError } from '../errors';
 import * as logger from '../logger';
+import * as LogTypes from '../log-types';
+import { LabelObject } from '../types';
 import * as ComposeUtils from './utils';
 
 export interface VolumeConfig {

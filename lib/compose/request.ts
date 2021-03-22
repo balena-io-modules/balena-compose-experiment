@@ -3,10 +3,7 @@ import once = require('lodash/once');
 import * as requestLib from 'request';
 import * as resumableRequestLib from 'resumable-request';
 
-import * as constants from './constants';
-import * as osRelease from './os-release';
-
-import supervisorVersion = require('./supervisor-version');
+import config from '../config';
 
 export { requestLib };
 
@@ -42,15 +39,10 @@ type PromisifiedRequest = typeof requestLib & {
 
 const getRequestInstances = once(async () => {
 	// Generate the user agents with out versions
-	const osVersion = await osRelease.getOSVersion(constants.hostOSVersionPath);
-	const osVariant = await osRelease.getOSVariant(constants.hostOSVersionPath);
-	let userAgent = `Supervisor/${supervisorVersion}`;
+	const osVersion = config.get('osVersion');
+	let userAgent = `balena-compose/${config.get('version')}`;
 	if (osVersion != null) {
-		if (osVariant != null) {
-			userAgent += ` (Linux; ${osVersion}; ${osVariant})`;
-		} else {
-			userAgent += ` (Linux; ${osVersion})`;
-		}
+		userAgent += ` (Linux; ${osVersion})`;
 	}
 
 	const requestOpts: requestLib.CoreOptions = {

@@ -2,13 +2,13 @@ import * as _ from 'lodash';
 import * as Path from 'path';
 import { VolumeInspectInfo } from 'dockerode';
 
-import constants = require('../lib/constants');
-import { NotFoundError, InternalInconsistencyError } from '../lib/errors';
-import { safeRename } from '../lib/fs-utils';
-import { docker } from '../lib/docker-utils';
-import * as LogTypes from '../lib/log-types';
-import { defaultLegacyVolume } from '../lib/migration';
-import log from '../lib/supervisor-console';
+import constants from '../constants';
+import { NotFoundError, InternalInconsistencyError } from '../errors';
+import { safeRename } from './fs-utils';
+import { docker } from './docker-utils';
+import * as LogTypes from '../log-types';
+// import { defaultLegacyVolume } from '../lib/migration';
+import log from '../console';
 import * as logger from '../logger';
 import { ResourceRecreationAttemptError } from './errors';
 import Volume, { VolumeConfig } from './volume';
@@ -78,24 +78,24 @@ export async function remove(volume: Volume) {
 	await volume.remove();
 }
 
-export async function createFromLegacy(appId: number): Promise<Volume | void> {
-	const name = defaultLegacyVolume();
-	const legacyPath = Path.join(
-		constants.rootMountPoint,
-		'mnt/data/resin-data',
-		appId.toString(),
-	);
+// export async function createFromLegacy(appId: number): Promise<Volume | void> {
+// 	const name = defaultLegacyVolume();
+// 	const legacyPath = Path.join(
+// 		constants.rootMountPoint,
+// 		'mnt/data/resin-data',
+// 		appId.toString(),
+// 	);
 
-	try {
-		return await createFromPath({ name, appId }, {}, legacyPath);
-	} catch (e) {
-		logger.logSystemMessage(
-			`Warning: could not migrate legacy /data volume: ${e.message}`,
-			{ error: e },
-			'Volume migration error',
-		);
-	}
-}
+// 	try {
+// 		return await createFromPath({ name, appId }, {}, legacyPath);
+// 	} catch (e) {
+// 		logger.logSystemMessage(
+// 			`Warning: could not migrate legacy /data volume: ${e.message}`,
+// 			{ error: e },
+// 			'Volume migration error',
+// 		);
+// 	}
+// }
 
 export async function createFromPath(
 	{ name, appId }: VolumeNameOpts,
