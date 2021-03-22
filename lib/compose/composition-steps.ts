@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import config from '../config'
+import config from '../config';
 import type { Image } from './images';
 import * as images from './images';
 import Network from './network';
@@ -112,9 +112,7 @@ type Executors<T extends CompositionStepAction> = {
 	[key in T]: (step: CompositionStepT<key>) => Promise<unknown>;
 };
 type LockingFn = (
-	// TODO: Once the entire codebase is typescript, change
-	// this to number
-	app: number | null,
+	app: number,
 	args: BaseCompositionStepArgs,
 	fn: () => Promise<unknown>,
 ) => Promise<unknown>;
@@ -164,7 +162,7 @@ export function getExecutors(app: {
 					await serviceManager.kill(step.current);
 					app.callbacks.containerKilled(step.current.containerId);
 				},
-			); 
+			);
 		},
 		remove: async (step) => {
 			// Only called for dead containers, so no need to

@@ -5,4 +5,5 @@ declare global {
 		[key: string]: T;
 	}
 	type Nullable<T> = T | null | undefined;
+	type Resolvable<T> = T | Promise<T>;
 }

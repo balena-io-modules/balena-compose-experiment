@@ -23,7 +23,7 @@ interface FetchProgressEvent {
 	percentage: number;
 }
 
- export interface Image {
+export interface Image {
 	id?: number;
 	// image registry/repo@digest or registry/repo:tag
 	name: string;
@@ -45,9 +45,9 @@ type NormalisedDockerImage = Docker.ImageInfo & {
 };
 
 const imageFetchFailures: Dictionary<number> = {};
-const imageFetchLastFailureTime: Dictionary<ReturnType<
-	typeof process.hrtime
->> = {};
+const imageFetchLastFailureTime: Dictionary<
+	ReturnType<typeof process.hrtime>
+> = {};
 
 // A store of volatile state for images (e.g. download progress), indexed by imageId
 const volatileState: { [imageId: number]: Image } = {};
@@ -85,8 +85,7 @@ export function bestDeltaSource(
 	return null;
 }
 
-
- export async function triggerFetch(
+export async function triggerFetch(
 	image: Image,
 	opts: FetchOptions,
 	onFinish = _.noop,
@@ -124,7 +123,7 @@ export function bestDeltaSource(
 		const imageName = await normalise(image.name);
 		image = _.clone(image);
 		image.name = imageName;
-		
+
 		onFinish(true);
 		return;
 	} catch (e) {
@@ -181,7 +180,6 @@ export function bestDeltaSource(
 // 	);
 // }
 
-
 function addImageFailure(imageName: string, time = process.hrtime()) {
 	imageFetchLastFailureTime[imageName] = time;
 	imageFetchFailures[imageName] =
@@ -217,11 +215,11 @@ export function isAvailableInDocker(
 // OK :). Was looking at composition-steps.ts :thumbsup:
 // oh, I'm trying to figure out that one too :)
 // Cool, all yours
- export function getAvailable(services: Service[]): Image[] {
-	return services.map(service => imageFromService(service));
+export function getAvailable(services: Service[]): Image[] {
+	return services.map((service) => imageFromService(service));
 }
 
- export function getDownloadingImageIds(): number[] {
+export function getDownloadingImageIds(): number[] {
 	return _.keys(_.pickBy(volatileState, { status: 'Downloading' })).map((i) =>
 		validation.checkInt(i),
 	) as number[];
@@ -243,14 +241,14 @@ export function isAvailableInDocker(
 // 	return _.values(status);
 // };
 
- export async function inspectByName(
+export async function inspectByName(
 	imageName: string,
 ): Promise<Docker.ImageInspectInfo> {
 	const image = docker.getImage(imageName);
 	return await image.inspect();
 }
 
- export function isSameImage(
+export function isSameImage(
 	image1: Pick<Image, 'name'>,
 	image2: Pick<Image, 'name'>,
 ): boolean {
@@ -259,10 +257,9 @@ export function isAvailableInDocker(
 	);
 }
 
- function normalise(imageName: string): Bluebird<string> {
+function normalise(imageName: string): Bluebird<string> {
 	return dockerToolbelt.normaliseImageName(imageName);
 }
-
 
 function hasSameDigest(
 	name1: Nullable<string>,
@@ -272,7 +269,6 @@ function hasSameDigest(
 	const hash2 = name2 != null ? name2.split('@')[1] : null;
 	return hash1 != null && hash1 === hash2;
 }
-
 
 async function fetchDelta(
 	image: Image,

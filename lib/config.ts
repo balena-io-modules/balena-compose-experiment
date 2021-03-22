@@ -4,6 +4,7 @@ import * as packageJson from '../package.json';
 const version = packageJson.version;
 const config = new Map();
 
+// TODO: fetchOptions should be obtained from a combination of configs
 config.set('fetchOptions', {
     'uuid': 'deafbeef',
     'currentApiKey': 'abc',
@@ -16,7 +17,6 @@ config.set('fetchOptions', {
     'deltaRetryInterval': 10000,
     'deltaVersion': 3,
     'supervisorNetworkInterface': '',         // TODO: 
-    'rootMountPoint': '',                     // TODO:
 });
 
 config.set('osVersion', '2.72');
