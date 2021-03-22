@@ -82,20 +82,20 @@ and adapt this code to the requirements defined for this library.
 
 ## Tasks (non-exhaustive)
 
-- [ ] Setup typescript repo
-- [ ] Extract and review typescript types for `Composer`, `Service`, `Volume` and `Network` from supervisor codebase
+- [x] Setup typescript repo
+- [ x] Extract and review typescript types for `Composer`, `Service`, `Volume` and `Network` from supervisor codebase
 - [ ] Define public APIs for the libraries
 - [ ] Write tests to specify API behavior
   - [ ] Improve [dockerode test mock](https://github.com/balena-io/balena-supervisor/blob/78821824ad4395502be498b696acf0f57ccd65d0/test/lib/mocked-dockerode.ts).
-- [ ] Write/adapt modules for
-  - [ ] Composer
-  - [ ] Services
-  - [ ] Volumes
-  - [ ] Networks
-  - [ ] Logging
-  - [ ] Contract validation
-  - [ ] Delta management
-  - [ ] Update locks
+- [x] Write/adapt modules for
+  - [x] Composer
+  - [x] Services
+  - [x] Volumes
+  - [x] Networks
+  - [x] Logging
+  - [x] Contract validation
+  - [x] Delta management
+  - [x] Update locks
 - [ ] Write CLI
 
 
