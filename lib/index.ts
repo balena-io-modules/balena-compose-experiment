@@ -24,15 +24,15 @@ import * as updateLock from './update-lock';
 
 export type ComposerOptions = {
 	uuid: string;
-	apiKey: string;
-	apiEndpoint: string;
-	deltaEndpoint: string;
-	delta: boolean;
-	deltaRequestTimeout: number;
-	deltaApplyTimeout: number;
-	deltaRetryCount: number;
-	deltaRetryInterval: number;
-	deltaVersion: number;
+	deviceApiKey: string;
+	apiEndpoint?: string;
+	deltaEndpoint?: string;
+	delta?: boolean;
+	deltaRequestTimeout?: number;
+	deltaApplyTimeout?: number;
+	deltaRetryCount?: number;
+	deltaRetryInterval?: number;
+	deltaVersion?: number;
 };
 
 type ComposerRuntime = {
@@ -57,8 +57,8 @@ export type ComposerState = {
 
 export type ComposerTarget = {
 	name: string;
-	commit: string;
-	releaseId: number;
+	commit?: string;
+	releaseId?: number;
 	services: {
 		[serviceId: string]: {
 			labels: LabelObject;
