@@ -33,6 +33,9 @@ export type ComposerOptions = {
 	deltaRetryCount?: number;
 	deltaRetryInterval?: number;
 	deltaVersion?: number;
+	hostNameOnHost?: string;
+	appUpdatePollInterval?: number;
+	deviceType?: string;
 };
 
 type ComposerRuntime = {
@@ -73,6 +76,7 @@ export type ComposerTarget = {
 	networks: Dictionary<Partial<ComposeNetworkConfig>>;
 };
 
+// utility function to prevent typescript from complaining
 function keys<T extends object>(value: T): Array<keyof T & string> {
 	return Object.keys(value) as Array<keyof T & string>;
 }
@@ -146,17 +150,36 @@ async function executeStep(
 	} as any);
 }
 
+/**
+ * Default composer configuration options
+ */
+const defaultComposerOptions: Partial<ComposerOptions> = {
+	apiEndpoint: 'https://api.balena-cloud.com',
+	deltaEndpoint: 'https://delta.balena-cloud.com',
+	delta: true,
+	deltaRequestTimeout: 30000,
+	deltaRetryCount: 30,
+	deltaRetryInterval: 10000,
+	deltaVersion: 3,
+	deviceType: 'raspberrypi3',
+	appUpdatePollInterval: 900000,
+	hostNameOnHost: 'balena',
+};
+
 export class Composer {
 	private runtimeState: ComposerRuntime = {
 		status: 'idle',
 		cancel: () => void 0,
 	};
 
-	constructor(readonly app: number, readonly options: ComposerOptions) {
-		// Set global options
-		// TODO: improve this
-		keys(options).forEach((key) => {
-			config.set(key, options[key]);
+	private readonly options: ComposerOptions;
+
+	constructor(readonly app: number, options: ComposerOptions) {
+		this.options = { ...defaultComposerOptions, ...options };
+
+		// Set global options.
+		keys(this.options).forEach((key) => {
+			config.set(key, this.options[key]);
 		});
 	}
 
@@ -211,32 +234,22 @@ export class Composer {
 			return Network.fromComposeObject(name, this.app, conf ?? {});
 		});
 
-		const [
-			supervisorApiHost,
-			hostPathExists,
-			hostnameOnHost,
-		] = await Promise.all([
+		// TODO: figure out how to handle these paths
+		const [supervisorApiHost, hostPathExists] = await Promise.all([
 			dockerUtils
-				.getNetworkGateway(config.get('supervisorNetworkInterface'))
+				.getNetworkGateway(constants.supervisorNetworkInterface)
 				.catch(() => '127.0.0.1'),
 			(async () => ({
 				firmware: await pathExistsOnHost('/lib/firmware'),
 				modules: await pathExistsOnHost('/lib/modules'),
 			}))(),
-			(async () =>
-				_.trim(
-					await fs.readFile(
-						path.join(constants.rootMountPoint, '/etc/hostname'),
-						'utf8',
-					),
-				))(),
 		]);
 
 		const svcOpts = {
 			appName: app.name,
 			supervisorApiHost,
 			hostPathExists,
-			hostnameOnHost,
+			hostnameOnHost: this.options.hostNameOnHost,
 		};
 
 		// In the db, the services are an array, but here we switch them to an
@@ -327,7 +340,7 @@ export class Composer {
 
 		const [downloading, availableImages] = await Promise.all([
 			imageManager.getDownloadingImageIds(),
-			imageManager.getAvailable(services[appId]),
+			imageManager.getAvailable(services[appId] ?? []),
 		]);
 
 		const containerIds = await serviceManager.getContainerIdMap(appId);
