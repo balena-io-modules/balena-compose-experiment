@@ -1,25 +1,45 @@
-# Balena Compose 
+# Balena Compose
 
-Balena compose is a [Node.js](https://nodejs.org/en/) library (and CLI tool) to define, run and update 
+Balena compose is a [Node.js](https://nodejs.org/en/) library (and CLI tool) to define, run and update
 multi-container applications on Docker enabled devices. It is specially targeted
 for managing the lifecycle [Balena](https://www.balena.io) applications on edge
 devices. This means it adds some features to [docker-compose](https://github.com/docker/compose) that
 make it more compatible with edge devices.
 
-* Support for [Balena Engine](https://www.balena.io/engine/) Docker daemon for more conservative 
-  memory use and reduced bandwidth use when pulling new images through the use of 
+- Support for [Balena Engine](https://www.balena.io/engine/) Docker daemon for more conservative
+  memory use and reduced bandwidth use when pulling new images through the use of
   [image deltas](https://www.balena.io/docs/learn/deploy/delta/#delta-updates).
-* Better control of [service update strategy](https://www.balena.io/docs/learn/deploy/release-strategy/update-strategies/#controlling-the-update-strategy) 
+- Better control of [service update strategy](https://www.balena.io/docs/learn/deploy/release-strategy/update-strategies/#controlling-the-update-strategy)
   to optimize for device constraints.
-* Application controlled updates through the use of [application update locks](https://www.balena.io/docs/learn/deploy/release-strategy/update-locking/#application-update-locks)
+- Application controlled updates through the use of [application update locks](https://www.balena.io/docs/learn/deploy/release-strategy/update-locking/#application-update-locks)
   for critical sections of code.
-* Make use of [container contracts](https://www.balena.io/docs/learn/develop/container-contracts/#container-contracts)? 
+- Make use of [container contracts](https://www.balena.io/docs/learn/develop/container-contracts/#container-contracts)?
   _TBD: not sure if this should be the responsability of this library_
 
-Balena compose is (will be) used by [Balena Supervisor](https://github.com/balena-io/balena-supervisor/), 
+Balena compose is (will be) used by [Balena Supervisor](https://github.com/balena-io/balena-supervisor/),
 Balena's on-device agent for managing a single application lifecycle.
 
 # Setup
+
+- `git clone https://github.com/balena-io-playground/balena-compose`
+- `npm i`
+- `npm run build`
+
+## Testing
+
+- Create an X86_64 balena application (e.g. `balena-compose`)
+- Using the [balena CLI](https://github.com/balena-io/balena-cli/) to register a new device: `balena register balena-compose` and copy the returned uuid.
+- On the node console
+
+```
+$ node
+> getSdk = require('balena-sdk').getSdk
+> balena = getSdk({apiUrl: 'https://api.balena-cloud.com/'})
+> balena.models.device.generateDeviceKey('<uuid>').then(console.log); // this will give you a device api key
+> Composer = require('./build/lib/').Composer
+> compose = new Composer('1810334', {uuid: 'd3505aab756e4e168b885f6658324c2a', deviceApiKey: '<deviceApiKey>'});
+> balena.models.device.getSupervisorTargetState('d3505aab756e4e168b885f6658324c2a').then(state => compose.update(state.local.apps['1810334']))
+```
 
 # How to use it
 
@@ -27,8 +47,8 @@ Balena's on-device agent for managing a single application lifecycle.
 import { Composer } from '@balena/compose';
 
 // Construct a new composer for app id (soon to be changed to app uuid)
-const composer = new Composer('12345', { apiKey: 'abcdef', 
-  apiEndpoint: 'https://api.balena-cloud.com', 
+const composer = new Composer('12345', { apiKey: 'abcdef',
+  apiEndpoint: 'https://api.balena-cloud.com',
   deltaEndpoint: 'https://delta.balena-cloud.com',
   registryEndpoint: 'registry2.balena-cloud.com',
   dockerSocket: '...'
@@ -42,7 +62,7 @@ const composer = new Composer('12345', { apiKey: 'abcdef',
 // {status: "Idle", services: {}, networks: {}, volumes: {}}
 await composer.state();
 
-// Set the target state for commit 'deafbeef' of the app (soon to be replaced by release-version), 
+// Set the target state for commit 'deafbeef' of the app (soon to be replaced by release-version),
 // see format of a single app in the target state endpoint
 // this will throw if the composer cannot reach the target state (there is a lock, cannot fetch images, etc.)
 // while this process is taking place, composer.state() should return the state of the application
@@ -53,7 +73,6 @@ await composer.update('deadbeef', {services: {main: {...}}, volumes: {}, network
 await composer.state();
 ```
 
-
 # The CLI
 
 ```
@@ -63,22 +82,22 @@ await composer.state();
 $ balena-compose up --app <appName>
 
 
-# Looks for a docker-compose.yml in the local folder and updates the 
+# Looks for a docker-compose.yml in the local folder and updates the
 # local application on the current device
 # TODO: This should be opened for discussion, this probably duplicates some balena-cli
 # functionality and it is uncertain where the cloud information could be
-# obtained from. 
-$ balena-compose up 
+# obtained from.
+$ balena-compose up
 ```
 
 # Hack week
 
-The main goal of the hack week project is to get to an agreement on what functionality this 
+The main goal of the hack week project is to get to an agreement on what functionality this
 library and CLI should provide.
 
-Although most of the code that will provide the functionalityof this library is already in the current supervisor codebase, 
+Although most of the code that will provide the functionalityof this library is already in the current supervisor codebase,
 (see [compose/](https://github.com/balena-io/balena-supervisor/tree/master/src/compose)), a secondary goal is to simplify
-and adapt this code to the requirements defined for this library. 
+and adapt this code to the requirements defined for this library.
 
 ## Tasks (non-exhaustive)
 
@@ -98,7 +117,6 @@ and adapt this code to the requirements defined for this library.
   - [x] Update locks
 - [ ] Write CLI
 
-
 ## Code Improvement goals
 
 - Improve test coverage
@@ -111,7 +129,6 @@ and adapt this code to the requirements defined for this library.
 - Reduce the need for external dependencies whenever possible.
 - Look for ways to make code more declarative
 
-
 # Future goals
 
-Support compose the compose specification https://compose-spec.io/ 
+Support compose the compose specification https://compose-spec.io/
