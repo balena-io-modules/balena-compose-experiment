@@ -139,11 +139,10 @@ export async function triggerFetch(
 		);
 
 		try {
-			let id;
 			if (opts.delta && (opts as DeltaFetchOptions).deltaSource != null) {
-				id = await fetchDelta(image, opts, onProgress, serviceName);
+				await fetchDelta(image, opts, onProgress, serviceName);
 			} else {
-				id = await fetchImage(image, opts, onProgress);
+				await fetchImage(image, opts, onProgress);
 			}
 
 			logger.logSystemEvent(LogTypes.downloadImageSuccess, { image });
