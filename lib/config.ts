@@ -28,7 +28,8 @@ config.set('fetchOptions', {
 });
 
 config.set('osVersion', '2.72');
+
+// the library version
 config.set('version', version);
-config.set('appUpdatePollInterval', 60000);
 
 export default config;
