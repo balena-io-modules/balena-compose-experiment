@@ -1,7 +1,5 @@
 import { ImageInspectInfo } from 'dockerode';
-import { promises as fs } from 'fs';
 import * as _ from 'lodash';
-import * as path from 'path';
 import App from './compose/app';
 import { CompositionStep, getExecutors } from './compose/composition-steps';
 import * as dockerUtils from './compose/docker-utils';
