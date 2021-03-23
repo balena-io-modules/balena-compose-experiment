@@ -1,0 +1,14 @@
+name: "balena-compose"
+command: "/bin/wrapper.sh"
+ps_command: "docker ps -aq"
+global_opts:
+  - name:  "--file"
+    value: "compose.yaml"
+  - name: "--uuid"
+    value: "not_required_for_local_tests"
+  - name: "--deviceApiKey"
+    value: "not_required_for_local_tests"
+up:
+  name: "up"
+down:
+  name: "down"

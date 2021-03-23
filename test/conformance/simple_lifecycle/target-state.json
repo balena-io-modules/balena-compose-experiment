@@ -1,0 +1,15 @@
+{
+	"name": "simple_lifecycle",
+	"commit": "deadbeef",
+	"releaseId": 1,
+	"services": {
+		"foobar": {
+			"serviceName": "test1",
+			"image": "composespec/conformance-tests-server",
+			"imageId": 1,
+			"running": true
+		}
+	},
+	"volumes": {},
+	"networks": {}
+}

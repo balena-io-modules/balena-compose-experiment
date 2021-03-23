@@ -1,0 +1,32 @@
+{
+	"name": "simple_lifecycle",
+	"commit": "deadbeef",
+	"releaseId": 1,
+	"services": {
+		"foo": {
+			"serviceName": "entry",
+			"image": "composespec/conformance-tests-server",
+			"imageId": 1,
+			"networks": [
+				"mynetwork"
+			],
+			"ports": [
+				"8080:8080"
+			],
+			"running": true
+		},
+		"baz": {
+			"serviceName": "target",
+			"image": "composespec/conformance-tests-server",
+			"imageId": 2,
+			"networks": [
+				"mynetwork"
+			],
+			"running": true
+		}
+	},
+	"volumes": {},
+	"networks": {
+		"mynetwork": {}
+	}
+}
