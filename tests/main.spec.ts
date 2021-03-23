@@ -17,7 +17,7 @@
 // };
 
 describe('TypeScript library skeleton:', function () {
-	it('should be able to call myFunc on a new instance', async function () {
+	xit('should be able to call myFunc on a new instance', async function () {
 		// const options: ComposerOptions = {
 		// 	uuid: '1',
 		// 	apiKey: '123',
