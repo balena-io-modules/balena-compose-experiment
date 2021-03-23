@@ -1,0 +1,16 @@
+version: '3.8'
+
+volumes:
+  cache:
+
+services:
+  testsuite:
+    build:
+      context: ../..
+      target: conformance
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - ROOT_MOUNTPOINT=/
+    volumes:
+      - cache:/var/lib/docker
+    privileged: true

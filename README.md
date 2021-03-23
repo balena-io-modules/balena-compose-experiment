@@ -103,4 +103,15 @@ and adapt this code to the requirements defined for this library.
 
 # Future goals
 
-Support compose the compose specification https://compose-spec.io/
+Support compose the compose specification https://compose-spec.io/ 
+
+We're using the [compose-spec/conformance-tests](https://github.com/compose-spec/conformance-tests) suite as our end-to-end test.
+To get started run:
+
+```
+make check
+```
+
+To convert tests from the upstream repo just render the YAML found in the
+directories here https://github.com/compose-spec/conformance-tests/tree/master/tests
+as `target state` similar to https://github.com/balena-io-playground/balena-compose/blob/rgz/cli_and_conformance_tests/tests/conformance/simple_lifecycle/target-state.json
