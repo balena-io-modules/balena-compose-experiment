@@ -33,12 +33,12 @@ Balena's on-device agent for managing a single application lifecycle.
 
 ```
 $ node
-> getSdk = require('balena-sdk').getSdk
+> { getSdk } = require('balena-sdk')
 > balena = getSdk({apiUrl: 'https://api.balena-cloud.com/'})
 > balena.models.device.generateDeviceKey('<uuid>').then(console.log); // this will give you a device api key
-> Composer = require('./build/lib/').Composer
-> compose = new Composer('1810334', {uuid: 'd3505aab756e4e168b885f6658324c2a', deviceApiKey: '<deviceApiKey>'});
-> balena.models.device.getSupervisorTargetState('d3505aab756e4e168b885f6658324c2a').then(state => compose.update(state.local.apps['1810334']))
+> { Composer } = require('./build/lib/')
+> compose = new Composer('<appId>', {uuid: '<uuid>', deviceApiKey: '<appId>'});
+> balena.models.device.getSupervisorTargetState('<uuid>').then(state => compose.update(state.local.apps['<appId>']))
 ```
 
 # How to use it
