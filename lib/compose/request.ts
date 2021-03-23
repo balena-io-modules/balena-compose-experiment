@@ -42,7 +42,7 @@ const getRequestInstances = once(async () => {
 	const osVersion = config.get('osVersion');
 	let userAgent = `balena-compose/${config.get('version')}`;
 	if (osVersion != null) {
-			userAgent += ` (Linux; ${osVersion})`;
+		userAgent += ` (Linux; ${osVersion})`;
 	}
 
 	const requestOpts: requestLib.CoreOptions = {

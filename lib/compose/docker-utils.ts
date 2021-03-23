@@ -28,7 +28,7 @@ export type FetchOptions = {
 	deltaRetryCount: number;
 	deltaRetryInterval: number;
 	deltaVersion: number;
-}
+};
 
 export type DeltaFetchOptions = FetchOptions & {
 	deltaSourceId: string;

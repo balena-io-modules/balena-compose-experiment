@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import * as _ from 'lodash';
 
 export interface CheckIntOptions {
 	positive?: boolean;
@@ -13,7 +13,7 @@ const NUMERALS_REGEX = /^-?[0-9]+\.?0*$/; // Allows trailing 0 decimals
  * Check an input string as a number, optionally specifying a requirement
  * to be positive
  */
- export function checkInt(
+export function checkInt(
 	s: unknown,
 	options: CheckIntOptions = {},
 ): number | undefined {
@@ -35,13 +35,12 @@ const NUMERALS_REGEX = /^-?[0-9]+\.?0*$/; // Allows trailing 0 decimals
 	return i;
 }
 
-
 /**
  * checkString
  *
  * Check that a string exists, and is not an empty string, 'null', or 'undefined'
  */
- export function checkString(s: unknown): string | void {
+export function checkString(s: unknown): string | void {
 	if (s == null || !_.isString(s) || _.includes(['null', 'undefined', ''], s)) {
 		return;
 	}
@@ -55,7 +54,7 @@ const NUMERALS_REGEX = /^-?[0-9]+\.?0*$/; // Allows trailing 0 decimals
  * Given an unknown value, determine if it evaluates to true.
  *
  */
- export function checkTruthy(v: unknown): boolean {
+export function checkTruthy(v: unknown): boolean {
 	if (typeof v === 'string') {
 		v = v.toLowerCase();
 	}

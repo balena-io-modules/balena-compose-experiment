@@ -7,8 +7,8 @@ export function logSystemEvent(
 	obj: LogEventObject,
 	_track: boolean = true,
 ): void {
-    // TODO: connect to backend at some point
-    const message = logType.humanName;
+	// TODO: connect to backend at some point
+	const message = logType.humanName;
 	console.log(message, obj);
 }
 
