@@ -21,6 +21,26 @@ Balena's on-device agent for managing a single application lifecycle.
 
 # Setup
 
+- `git clone https://github.com/balena-io-playground/balena-compose`
+- `npm i`
+- `npm run build`
+
+## Testing
+
+- Create an X86_64 balena application (e.g. `balena-compose`)
+- Using the [balena CLI](https://github.com/balena-io/balena-cli/) to register a new device: `balena register balena-compose` and copy the returned uuid.
+- On the node console
+
+```
+$ node
+> { getSdk } = require('balena-sdk')
+> balena = getSdk({apiUrl: 'https://api.balena-cloud.com/'})
+> balena.models.device.generateDeviceKey('<uuid>').then(console.log); // this will give you a device api key
+> { Composer } = require('./build/lib/')
+> compose = new Composer('<appId>', {uuid: '<uuid>', deviceApiKey: '<appId>'});
+> balena.models.device.getSupervisorTargetState('<uuid>').then(state => compose.update(state.local.apps['<appId>']))
+```
+
 # How to use it
 
 ```typescript
