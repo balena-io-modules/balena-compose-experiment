@@ -183,7 +183,6 @@ export async function stopAllByAppId(appId: number) {
 }
 
 export async function create(service: Service) {
-
 	try {
 		const existing = await get(service);
 		if (existing.containerId == null) {
@@ -221,7 +220,8 @@ export async function create(service: Service) {
 			containerIds: serviceContainerIds,
 		});
 		const nets = serviceNetworksToDockerNetworks(service.extraNetworksToJoin());
-		const serviceIdentifierForLog = service.serviceName ?? service.imageId.toString();
+		const serviceIdentifierForLog =
+			service.serviceName ?? service.imageId.toString();
 
 		logger.logSystemEvent(LogTypes.installService, { service });
 		reportNewStatus(serviceIdentifierForLog, service, 'Installing');
@@ -229,7 +229,7 @@ export async function create(service: Service) {
 		try {
 			const container = await docker.createContainer(conf);
 			service.containerId = container.id;
-	
+
 			await Promise.all(
 				_.map((nets || {}).EndpointsConfig, (endpointConfig, name) =>
 					docker.getNetwork(name).connect({
@@ -238,13 +238,13 @@ export async function create(service: Service) {
 					}),
 				),
 			);
-	
+
 			logger.logSystemEvent(LogTypes.installServiceSuccess, { service });
 			return container;
 		} finally {
 			reportChange(serviceIdentifierForLog);
 		}
-	} 
+	}
 }
 
 export async function start(service: Service) {
@@ -265,8 +265,8 @@ export async function start(service: Service) {
 		} catch (e) {
 			// Get the statusCode from the original cause and make sure it's
 			// definitely an int for comparison reasons
-			const maybeStatusCode = parseInt(e.statusCode);
-			if (maybeStatusCode == NaN) {
+			const maybeStatusCode = Number(e.statusCode);
+			if (isNaN(maybeStatusCode)) {
 				shouldRemove = true;
 				err = new Error(`Could not parse status code from docker error:  ${e}`);
 				throw err;
@@ -496,8 +496,8 @@ function killContainer(
 			.catch((e) => {
 				// Get the statusCode from the original cause and make sure it's
 				// definitely an int for comparison reasons
-				const statusCode = parseInt(e.statusCode);
-				if (statusCode == NaN) {
+				const statusCode = Number(e.statusCode);
+				if (isNaN(statusCode)) {
 					throw new Error(
 						`Could not parse status code from docker error:  ${e}`,
 					);
@@ -505,7 +505,9 @@ function killContainer(
 
 				// 304 means the container was already stopped, so we can just remove it
 				if (statusCode === 304) {
-					logger.logSystemEvent(LogTypes.stopServiceNoop, { service });
+					logger.logSystemEvent(LogTypes.stopServiceNoop, {
+						service,
+					});
 					// Why do we attempt to remove the container again?
 					if (removeContainer) {
 						return containerObj.remove({ v: true });

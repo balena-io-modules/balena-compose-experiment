@@ -148,7 +148,6 @@ export class ExtraUEnvError extends TypedError {}
  */
 export class ODMDataError extends TypedError {}
 
-
 export class InvalidNetworkNameError extends TypedError {
 	public constructor(public name: string) {
 		super(`Invalid network name: ${name}`);
