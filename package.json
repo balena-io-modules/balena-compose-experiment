@@ -25,10 +25,10 @@
   "scripts": {
     "clean": "rimraf build bin",
     "build": "npm run clean && tsc",
-    "lint": "balena-lint --typescript lib tests",
-    "lint-fix": "balena-lint --typescript --fix lib tests",
-    "test:node": "TS_NODE_FILES=true mocha -r ts-node/register --reporter spec tests/**/*.spec.ts",
-    "test": "TS_NODE_FILES=true npm run build && lint && npm run && npm run test:node",
+    "lint": "balena-lint --typescript lib test",
+    "lint-fix": "balena-lint --typescript --fix lib test",
+    "test:node": "TS_NODE_FILES=true mocha -r ts-node/register --reporter spec test/**/*.spec.ts",
+    "test": "TS_NODE_FILES=true npm run build && npm run lint && npm run test:node",
     "test:fast": "npm run build && npm run test:node",
     "prepack": "npm run build"
   },
