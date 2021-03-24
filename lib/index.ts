@@ -19,6 +19,7 @@ import constants from './constants';
 import { InternalInconsistencyError, NotFoundError } from './errors';
 import { LabelObject } from './types';
 import * as updateLock from './update-lock';
+import log from './console';
 
 export type ComposerOptions = {
 	uuid: string;
@@ -35,6 +36,8 @@ export type ComposerOptions = {
 	appUpdatePollInterval?: number;
 	deviceType?: string;
 	deviceName?: string;
+	deviceArch?: string;
+	osVersion?: string;
 
 	// supervisor port
 	listenPort?: number;
@@ -158,12 +161,14 @@ async function executeStep(
 const defaultComposerOptions: Partial<ComposerOptions> = {
 	apiEndpoint: 'https://api.balena-cloud.com',
 	deltaEndpoint: 'https://delta.balena-cloud.com',
-	delta: true,
+	delta: false,
 	deltaRequestTimeout: 30000,
 	deltaRetryCount: 30,
 	deltaRetryInterval: 10000,
 	deltaVersion: 3,
 	deviceType: 'raspberrypi3',
+	deviceArch: 'armv7',
+	osVersion: '2.72.1',
 	appUpdatePollInterval: 900000,
 	hostNameOnHost: 'balena',
 	deviceName: 'balena',
@@ -217,7 +222,7 @@ export class Composer {
 			status: this.runtimeState.status,
 			app: appId,
 			release: commit,
-			services: _.keyBy(services[appId], 'name'),
+			services: _.keyBy(services[appId], 'serviceId'),
 			networks: _.keyBy(networks[appId], 'name'),
 			volumes: _.keyBy(volumes[appId], 'name'),
 		};
@@ -255,6 +260,10 @@ export class Composer {
 			hostPathExists,
 			hostnameOnHost: this.options.hostNameOnHost,
 			listenPort: this.options.listenPort,
+			uuid: this.options.uuid,
+			deviceType: this.options.deviceType,
+			deviceArch: this.options.deviceArch,
+			osVersion: this.options.osVersion,
 		};
 
 		// In the db, the services are an array, but here we switch them to an
@@ -414,6 +423,7 @@ export class Composer {
 		return await new Promise<ComposerState>(async (resolve, reject) => {
 			try {
 				// update the runtime state before calling the apply function
+				log.info('Applying target state');
 				this.setRuntimeState('running', reject);
 				return resolve(await applyTarget(target));
 			} catch (e) {
@@ -421,6 +431,7 @@ export class Composer {
 			} finally {
 				// reset the runtime state
 				this.setRuntimeState('idle');
+				log.info('Target state applied');
 			}
 		});
 	}
