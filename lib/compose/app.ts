@@ -76,7 +76,8 @@ export class App {
 		target: App,
 	): CompositionStep[] {
 		// Check to see if we need to polyfill in some "new" data for legacy services
-		this.migrateLegacy(target);
+		// TODO: figure out what to do with migration
+		// this.migrateLegacy(target);
 
 		// Check for changes in the volumes. We don't remove any volumes until we remove an
 		// entire app
