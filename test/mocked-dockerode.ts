@@ -101,6 +101,11 @@ function createMockedDockerode(data: TestData) {
 		};
 	};
 
+	mockedDockerode.listContainers = async (_options?: {}) => {
+		addAction('listContainers');
+		return data.containers as dockerode.ContainerInfo[];
+	};
+
 	mockedDockerode.getVolume = (name: string) => {
 		addAction('getVolume');
 		const picked = data.volumes.filter((v: Dictionary<any>) => v.Name === name);
@@ -140,7 +145,9 @@ function createMockedDockerode(data: TestData) {
 		addAction('getContainer', { id });
 		return {
 			inspect: async () => {
-				return data.containers.filter((c: Dictionary<any>) => c.id === id);
+				return data.containers.filter(
+					(c: Dictionary<any>) => c.id === id || c.Id === id,
+				)[0];
 			},
 			start: async () => {
 				addAction('start');

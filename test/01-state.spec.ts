@@ -48,20 +48,35 @@ describe('Composer state:', function () {
 			deltaVersion: 10,
 		};
 
-		const instance = new Composer(123, options);
+		const instance = new Composer(789, options);
 
 		const containers = [
 			{
 				Id: '789',
+				Name: 'something_123_123',
+				State: {
+					Running: true,
+				},
+				Config: {
+					Hostname: 'hostymc-hostface',
+					Labels: {
+						'io.balena.app-id': '789',
+						'io.balena.service-name': 'testitnow',
+						'io.balena.service-id': 1,
+					},
+				},
+				HostConfig: {
+					Ulimits: [],
+				},
 			},
 		];
 
 		const expected = {
 			status: 'idle',
-			app: 123,
+			app: 789,
 			volumes: {},
 			networks: {},
-			services: { appId: '1798798' },
+			services: { appId: '789' },
 		};
 
 		await testWithData({ containers }, async () => {
