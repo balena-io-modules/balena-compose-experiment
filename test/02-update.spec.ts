@@ -29,15 +29,78 @@ describe('Composer update:', function () {
 		// 	volumes: {},
 		// };
 
+		// const networks = {
+		// 	'supervisor0': {
+		// 		Name: '123_default',
+		// 		IPAM: {
+		// 			Config: [
+		// 				{
+		// 					Gateway: '',
+		// 				},
+		// 			],
+		// 		},
+		// 	},
+		// };
+
 		const networks = {
 			supervisor0: {
-				Name: 'supervisor0',
+				Name: '123_default',
+				Id: '4e6a4ae2dc07f09503c0ffa15b85e7e05cc7b80c0b38ba2e56f14fda4685bf5b',
+				Created: '2020-06-11T09:04:00.299972855Z',
+				Scope: 'local',
+				Driver: 'bridge',
+				EnableIPv6: false,
 				IPAM: {
+					Driver: 'default',
+					Options: {},
 					Config: [
 						{
-							Gateway: '',
+							Subnet: '172.17.0.0/16',
+							Gateway: '172.17.0.1',
 						},
 					],
+				},
+				Internal: false,
+				Attachable: false,
+				Ingress: false,
+				ConfigFrom: {
+					Network: '',
+				},
+				ConfigOnly: false,
+				Containers: {},
+				Options: {},
+				Labels: {
+					'io.balena.supervised': 'true',
+				},
+			},
+			'123_default': {
+				Name: '123_default',
+				Id: '4e6a4ae2dc07f09503c0ffa15b85e7e05cc7b80c0b38ba2e56f14fda4685bf5b',
+				Created: '2020-06-11T09:04:00.299972855Z',
+				Scope: 'local',
+				Driver: 'bridge',
+				EnableIPv6: false,
+				IPAM: {
+					Driver: 'default',
+					Options: {},
+					Config: [
+						{
+							Subnet: '172.17.0.0/16',
+							Gateway: '172.17.0.1',
+						},
+					],
+				},
+				Internal: false,
+				Attachable: false,
+				Ingress: false,
+				ConfigFrom: {
+					Network: '',
+				},
+				ConfigOnly: false,
+				Containers: {},
+				Options: {},
+				Labels: {
+					'io.balena.supervised': 'true',
 				},
 			},
 		};
