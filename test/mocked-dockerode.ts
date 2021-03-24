@@ -88,22 +88,29 @@ export interface TestData {
 	volumes: Dictionary<any>;
 }
 
-function createMockedDockerode(data: TestData) {
+function createMockedDockerode(mockData: TestData) {
 	const mockedDockerode = dockerode.prototype;
+
+	const data = _.cloneDeep(mockData);
 
 	mockedDockerode.listImages = async () => [];
 
 	mockedDockerode.listVolumes = async () => {
 		addAction('listVolumes');
 		return {
-			Volumes: data.volumes as dockerode.VolumeInspectInfo[],
+			Volumes: Object.values(data.volumes) as dockerode.VolumeInspectInfo[],
 			Warnings: [],
 		};
 	};
 
+	mockedDockerode.listNetworks = async () => {
+		addAction('listNetworks');
+		return Object.values(data.networks) as dockerode.NetworkInfo[];
+	};
+
 	mockedDockerode.listContainers = async (_options?: {}) => {
 		addAction('listContainers');
-		return data.containers as dockerode.ContainerInfo[];
+		return Object.values(data.containers) as dockerode.ContainerInfo[];
 	};
 
 	mockedDockerode.getVolume = (name: string) => {
@@ -134,11 +141,31 @@ function createMockedDockerode(data: TestData) {
 		options: dockerode.ContainerCreateOptions,
 	) => {
 		addAction('createContainer', { options });
-		return {
+		const len = Object.values(data.containers).length;
+		const id = len + 1000;
+		const c = {
 			start: async () => {
 				addAction('start');
 			},
-		} as dockerode.Container;
+			Id: id,
+			Name: `something_${id}_${id}`,
+			State: {
+				Running: true,
+			},
+			Config: {
+				Hostname: 'hostymc-hostface',
+				Labels: {
+					'io.balena.app-id': id.toString(),
+					'io.balena.service-name': 'testitnow',
+					'io.balena.service-id': 1,
+				},
+			},
+			HostConfig: {
+				Ulimits: [],
+			},
+		};
+		data.containers[len + 1] = c;
+		return (c as unknown) as dockerode.Container;
 	};
 
 	mockedDockerode.getContainer = (id: string) => {
@@ -184,7 +211,11 @@ function createMockedDockerode(data: TestData) {
 		return {
 			inspect: async () => {
 				addAction('inspect');
-				return data.networks[id];
+				const network = data.networks[id];
+				if (!network) {
+					throw new NotFoundError();
+				}
+				return network;
 			},
 		} as dockerode.Network;
 	};

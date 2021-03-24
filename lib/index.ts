@@ -183,7 +183,7 @@ export class Composer {
 
 	private readonly options: ComposerOptions;
 
-	constructor(readonly app: number, options: ComposerOptions) {
+	constructor(readonly appId: number, options: ComposerOptions) {
 		this.options = { ...defaultComposerOptions, ...options };
 
 		// Set global options.
@@ -203,9 +203,9 @@ export class Composer {
 			Object.keys(services),
 		).map((i) => parseInt(i, 10));
 
-		const appId = this.app;
+		const appId = this.appId;
 
-		if (!allAppIds.includes(this.app)) {
+		if (!allAppIds.includes(this.appId)) {
 			return {
 				status: 'idle',
 				app: appId,
@@ -236,11 +236,11 @@ export class Composer {
 			if (conf.labels == null) {
 				conf.labels = {};
 			}
-			return Volume.fromComposeObject(name, this.app, conf);
+			return Volume.fromComposeObject(name, this.appId, conf);
 		});
 
 		const networks = _.mapValues(app.networks ?? {}, (conf, name) => {
-			return Network.fromComposeObject(name, this.app, conf ?? {});
+			return Network.fromComposeObject(name, this.appId, conf ?? {});
 		});
 
 		// TODO: figure out how to handle these paths
@@ -302,7 +302,7 @@ export class Composer {
 		);
 		return new App(
 			{
-				appId: this.app,
+				appId: this.appId,
 				commit: app.commit,
 				releaseId: app.releaseId,
 				appName: app.name,
@@ -328,13 +328,13 @@ export class Composer {
 			Object.keys(services),
 		).map((i) => parseInt(i, 10));
 
-		const appId = this.app;
+		const appId = this.appId;
 		let app: App;
 
 		// TODO: get commit from service labels
 		const commit = 'abc';
 
-		if (allAppIds.includes(appId)) {
+		if (!allAppIds.includes(this.appId)) {
 			app = new App(
 				{
 					appId,

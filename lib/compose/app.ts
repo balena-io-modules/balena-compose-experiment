@@ -64,7 +64,7 @@ export class App {
 		if (this.networks.default == null && isTargetState) {
 			// We always want a default network
 			this.networks.default = Network.fromComposeObject(
-				'default',
+				`${opts.appId}_default`,
 				opts.appId,
 				{},
 			);
