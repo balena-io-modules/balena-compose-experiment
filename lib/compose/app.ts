@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { InternalInconsistencyError } from '../errors';
-import { checkString, checkTruthy } from '../validation';
+import { checkString } from '../validation';
 import {
 	CompositionStep,
 	CompositionStepAction,
@@ -191,27 +191,27 @@ export class App {
 		return [];
 	}
 
-	private migrateLegacy(target: App) {
-		const currentServices = Object.values(this.services);
-		const targetServices = Object.values(target.services);
-		if (
-			currentServices.length === 1 &&
-			targetServices.length === 1 &&
-			targetServices[0].serviceName === currentServices[0].serviceName &&
-			checkTruthy(
-				currentServices[0].config.labels['io.balena.legacy-container'],
-			)
-		) {
-			// This is a legacy preloaded app or container, so we didn't have things like serviceId.
-			// We hack a few things to avoid an unnecessary restart of the preloaded app
-			// (but ensuring it gets updated if it actually changed)
-			targetServices[0].config.labels['io.balena.legacy-container'] =
-				currentServices[0].config.labels['io.balena.legacy-container'];
-			targetServices[0].config.labels['io.balena.service-id'] =
-				currentServices[0].config.labels['io.balena.service-id'];
-			targetServices[0].serviceId = currentServices[0].serviceId;
-		}
-	}
+	// private migrateLegacy(target: App) {
+	// 	const currentServices = Object.values(this.services);
+	// 	const targetServices = Object.values(target.services);
+	// 	if (
+	// 		currentServices.length === 1 &&
+	// 		targetServices.length === 1 &&
+	// 		targetServices[0].serviceName === currentServices[0].serviceName &&
+	// 		checkTruthy(
+	// 			currentServices[0].config.labels['io.balena.legacy-container'],
+	// 		)
+	// 	) {
+	// 		// This is a legacy preloaded app or container, so we didn't have things like serviceId.
+	// 		// We hack a few things to avoid an unnecessary restart of the preloaded app
+	// 		// (but ensuring it gets updated if it actually changed)
+	// 		targetServices[0].config.labels['io.balena.legacy-container'] =
+	// 			currentServices[0].config.labels['io.balena.legacy-container'];
+	// 		targetServices[0].config.labels['io.balena.service-id'] =
+	// 			currentServices[0].config.labels['io.balena.service-id'];
+	// 		targetServices[0].serviceId = currentServices[0].serviceId;
+	// 	}
+	// }
 
 	private compareComponents<T extends { isEqualConfig(target: T): boolean }>(
 		current: Dictionary<T>,
