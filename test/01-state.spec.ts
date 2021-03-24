@@ -73,7 +73,7 @@ describe('Composer state:', function () {
 
 		await testWithData({ containers }, async () => {
 			const state = await instance.state();
-			expect(state.services.length).to.be.equal(1);
+			expect(Object.keys(state.services).length).to.be.equal(1);
 		});
 	});
 });

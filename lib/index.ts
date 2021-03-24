@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import App from './compose/app';
 import { CompositionStep, getExecutors } from './compose/composition-steps';
 import * as dockerUtils from './compose/docker-utils';
-import { pathExistsOnHost } from './compose/fs-utils';
+// import { pathExistsOnHost } from './compose/fs-utils';
 import * as imageManager from './compose/images';
 import { bestDeltaSource } from './compose/images';
 import Network from './compose/network';
@@ -233,16 +233,16 @@ export class Composer {
 		});
 
 		// TODO: figure out how to handle these paths
-		const [supervisorApiHost, hostPathExists] = await Promise.all([
+		const [supervisorApiHost] = await Promise.all([
 			dockerUtils
 				.getNetworkGateway(constants.supervisorNetworkInterface)
 				.catch(() => '127.0.0.1'),
-			(async () => ({
-				firmware: await pathExistsOnHost('/lib/firmware'),
-				modules: await pathExistsOnHost('/lib/modules'),
-			}))(),
+			// (async () => ({
+			// 	firmware: await pathExistsOnHost('/lib/firmware'),
+			// 	modules: await pathExistsOnHost('/lib/modules'),
+			// }))(),
 		]);
-
+		const hostPathExists = true;
 		const svcOpts = {
 			appName: app.name,
 			supervisorApiHost,
