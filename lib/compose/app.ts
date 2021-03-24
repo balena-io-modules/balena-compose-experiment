@@ -196,7 +196,7 @@ export class App {
 		if (
 			currentServices.length === 1 &&
 			targetServices.length === 1 &&
-			targetServices[0].serviceName === currentServices[0].serviceName &&
+			targetServices[0].name === currentServices[0].name &&
 			checkTruthy(
 				currentServices[0].config.labels['io.balena.legacy-container'],
 			)
@@ -602,7 +602,7 @@ export class App {
 			// We know the service name exists as it always does for targets
 			return generateStep('fetch', {
 				image: imageManager.imageFromService(target),
-				serviceName: target.serviceName!,
+				serviceName: target.name!,
 			});
 		} else if (
 			this.dependenciesMetForServiceStart(
@@ -629,7 +629,7 @@ export class App {
 		// are services which are changing). We could have a dependency which is
 		// starting up, but is not yet running.
 		const depInstallingButNotRunning = _.some(this.services, (svc) => {
-			if (target.dependsOn?.includes(svc.serviceName!)) {
+			if (target.dependsOn?.includes(svc.name!)) {
 				if (!svc.config.running) {
 					return true;
 				}
@@ -641,7 +641,7 @@ export class App {
 		}
 
 		const depedencyUnmet = _.some(target.dependsOn, (dep) =>
-			_.some(servicePairs, (pair) => pair.target?.serviceName === dep),
+			_.some(servicePairs, (pair) => pair.target?.name === dep),
 		);
 
 		if (depedencyUnmet) {
@@ -703,7 +703,7 @@ export class App {
 		if (target.dependsOn != null) {
 			for (const dependency of target.dependsOn) {
 				const dependencyService = _.find(targetApp.services, {
-					serviceName: dependency,
+					name: dependency,
 				});
 				if (
 					!_.some(

@@ -44,7 +44,7 @@ export class Service {
 	public appId: number;
 	public imageId: number;
 	public config: ServiceConfig;
-	public serviceName: string | null;
+	public name: string | null;
 	public releaseId: number;
 	public serviceId: number;
 	public imageName: string | null;
@@ -120,7 +120,7 @@ export class Service {
 		// container configuration
 		service.imageId = parseInt(appConfig.imageId, 10);
 		delete appConfig.imageId;
-		service.serviceName = appConfig.serviceName;
+		service.name = appConfig.serviceName;
 		delete appConfig.serviceName;
 		service.appId = appId;
 		delete appConfig.appId;
@@ -163,7 +163,7 @@ export class Service {
 			if (v.aliases == null) {
 				v.aliases = [];
 			}
-			const serviceName: string = service.serviceName || '';
+			const serviceName: string = service.name || '';
 			if (!_.includes(v.aliases, serviceName)) {
 				v.aliases.push(serviceName);
 			}
@@ -247,7 +247,7 @@ export class Service {
 				// If we don't have any networks, we need to
 				// create the default with some default options
 				networks[config.networkMode] = {
-					aliases: [service.serviceName || ''],
+					aliases: [service.name || ''],
 				};
 			}
 		}
@@ -261,7 +261,7 @@ export class Service {
 				config.environment || {},
 				options,
 				service.appId || 0,
-				service.serviceName || '',
+				service.name || '',
 			),
 		);
 		config.labels = ComposeUtils.normalizeLabels(
@@ -270,7 +270,7 @@ export class Service {
 				options,
 				service.appId || 0,
 				service.serviceId || 0,
-				service.serviceName || '',
+				service.name || '',
 			),
 		);
 
@@ -304,7 +304,7 @@ export class Service {
 			config.volumes,
 			options.imageInfo,
 			service.appId,
-			service.serviceName || '',
+			service.name || '',
 		);
 
 		let portMaps: PortMap[] = [];
@@ -590,7 +590,7 @@ export class Service {
 			);
 		}
 		svc.appId = appId;
-		svc.serviceName = svc.config.labels['io.balena.service-name'];
+		svc.name = svc.config.labels['io.balena.service-name'];
 		svc.serviceId = parseInt(svc.config.labels['io.balena.service-id'], 10);
 		if (Number.isNaN(svc.serviceId)) {
 			throw new InternalInconsistencyError(
@@ -652,7 +652,7 @@ export class Service {
 			this.config.networkMode = `container:${containerId}`;
 		}
 		return {
-			name: `${this.serviceName}_${this.imageId}_${this.releaseId}`,
+			name: `${this.name}_${this.imageId}_${this.releaseId}`,
 			Tty: this.config.tty,
 			Cmd: this.config.command,
 			Volumes: volumes,
@@ -781,7 +781,7 @@ export class Service {
 			// Add some console output for why a service is not matching
 			// so that if we end up in a restart loop, we know exactly why
 			log.debug(
-				`Replacing container for service ${this.serviceName} because of config changes:`,
+				`Replacing container for service ${this.name} because of config changes:`,
 			);
 			if (!nonArrayEquals) {
 				// Try not to leak any sensitive information
@@ -874,10 +874,7 @@ export class Service {
 	}
 
 	public getNamedVolumes() {
-		const defaults = Service.defaultBinds(
-			this.appId || 0,
-			this.serviceName || '',
-		);
+		const defaults = Service.defaultBinds(this.appId || 0, this.name || '');
 		const validVolumes = _.map(this.config.volumes, (volume) => {
 			if (_.includes(defaults, volume) || !_.includes(volume, ':')) {
 				return null;
@@ -909,7 +906,7 @@ export class Service {
 	private handoverCompletePathOnHost(): string {
 		return path.join(
 			constants.rootMountPoint,
-			updateLock.lockPath(this.appId || 0, this.serviceName || ''),
+			updateLock.lockPath(this.appId || 0, this.name || ''),
 		);
 	}
 
