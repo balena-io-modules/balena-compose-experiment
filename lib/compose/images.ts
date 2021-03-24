@@ -211,9 +211,6 @@ export function isAvailableInDocker(
 	);
 }
 
-// OK :). Was looking at composition-steps.ts :thumbsup:
-// oh, I'm trying to figure out that one too :)
-// Cool, all yours
 export function getAvailable(services: Service[]): Image[] {
 	return services.map((service) => imageFromService(service));
 }

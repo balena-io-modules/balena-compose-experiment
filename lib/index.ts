@@ -34,6 +34,9 @@ export type ComposerOptions = {
 	hostNameOnHost?: string;
 	appUpdatePollInterval?: number;
 	deviceType?: string;
+
+	// supervisor port
+	listenPort?: number;
 };
 
 type ComposerRuntime = {
@@ -162,6 +165,7 @@ const defaultComposerOptions: Partial<ComposerOptions> = {
 	deviceType: 'raspberrypi3',
 	appUpdatePollInterval: 900000,
 	hostNameOnHost: 'balena',
+	listenPort: 48484,
 };
 
 export class Composer {
@@ -248,13 +252,18 @@ export class Composer {
 			supervisorApiHost,
 			hostPathExists,
 			hostnameOnHost: this.options.hostNameOnHost,
+			listenPort: this.options.listenPort,
 		};
 
 		// In the db, the services are an array, but here we switch them to an
 		// object so that they are consistent
 		const services: Service[] = await Promise.all(
 			keys(app.services ?? {})
-				.map((serviceId) => ({ serviceId, ...app.services[serviceId] }))
+				.map((serviceId) => ({
+					serviceId,
+					appId: this.app,
+					...app.services[serviceId],
+				}))
 				.map(async (svc: ServiceComposeConfig) => {
 					// Try to fill the image id if the image is downloaded
 					let imageInfo: ImageInspectInfo | undefined;
@@ -313,13 +322,14 @@ export class Composer {
 		// TODO: get commit from service labels
 		const commit = 'abc';
 
-		if (!allAppIds.includes(this.app)) {
+		if (allAppIds.includes(appId)) {
 			app = new App(
 				{
 					appId,
-					services: [],
-					networks: {},
-					volumes: {},
+					commit,
+					services: services[appId] ?? [],
+					networks: _.keyBy(networks[appId], 'name') ?? {},
+					volumes: _.keyBy(volumes[appId], 'name') ?? {},
 				},
 				false,
 			);
@@ -327,10 +337,9 @@ export class Composer {
 			app = new App(
 				{
 					appId,
-					commit,
-					services: services[appId],
-					networks: _.keyBy(networks[appId], 'name'),
-					volumes: _.keyBy(volumes[appId], 'name'),
+					services: [],
+					networks: {},
+					volumes: {},
 				},
 				false,
 			);
