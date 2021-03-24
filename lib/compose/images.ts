@@ -28,12 +28,12 @@ export interface Image {
 	// image registry/repo@digest or registry/repo:tag
 	name: string;
 	appId: number;
-	serviceId: number;
+	serviceId?: number;
 	serviceName: string;
 	// Id from balena api
 	imageId: number;
-	releaseId: number;
-	dependent: number;
+	releaseId?: number;
+	dependent?: number;
 	dockerImageId?: string;
 	status?: 'Downloading' | 'Downloaded' | 'Deleting';
 	downloadProgress?: number | null;
@@ -75,13 +75,21 @@ export function bestDeltaSource(
 	image: Image,
 	available: Image[],
 ): string | null {
-	// TODO: how do we compare to images on the engine
+	if (!image.dependent) {
+		for (const availableImage of available) {
+			if (
+				availableImage.serviceName === image.serviceName &&
+				availableImage.appId === image.appId
+			) {
+				return availableImage.name;
+			}
+		}
+	}
 	for (const availableImage of available) {
 		if (availableImage.appId === image.appId) {
 			return availableImage.name;
 		}
 	}
-
 	return null;
 }
 
@@ -124,6 +132,10 @@ export async function triggerFetch(
 		image = _.clone(image);
 		image.name = imageName;
 
+		// Try to get the image by name, if it succeeds then
+		// there is nothing to do
+		await inspectByName(image.name);
+
 		onFinish(true);
 		return;
 	} catch (e) {
@@ -139,11 +151,19 @@ export async function triggerFetch(
 		);
 
 		try {
+			let id;
 			if (opts.delta && (opts as DeltaFetchOptions).deltaSource != null) {
-				await fetchDelta(image, opts, onProgress, serviceName);
+				id = await fetchDelta(image, opts, onProgress, serviceName);
 			} else {
-				await fetchImage(image, opts, onProgress);
+				id = await fetchImage(image, opts, onProgress);
 			}
+
+			// tag image with some metadata
+			const { repo } = await dockerUtils.getRepoAndTag(image.name);
+			await docker.getImage(id).tag({
+				repo,
+				tag: `${image.appId}_${image.imageId}_${image.serviceName}`,
+			});
 
 			logger.logSystemEvent(LogTypes.downloadImageSuccess, { image });
 			success = true;
@@ -209,6 +229,42 @@ export function isAvailableInDocker(
 			matchesTagOrDigest(image, dockerImage) ||
 			image.dockerImageId === dockerImage.Id,
 	);
+}
+
+export async function getAvailableFromEngine(): Promise<Image[]> {
+	const allImages = await docker.listImages({ all: true });
+
+	// composer images have a tag <imageName>:<appId>_<imageId>_<serviceName>
+	const tagRegex = /^(.+):(\d+)_(\d+)_(\w+)$/;
+
+	return allImages
+		.filter(
+			(img) =>
+				img.RepoTags !== null &&
+				img.RepoTags.some((tag) => tag.match(tagRegex) !== null),
+		)
+		.map((img) => {
+			const [matchingTag] = img.RepoTags.map((tag) =>
+				tag.match(tagRegex),
+			).filter((tag) => tag != null);
+			const [
+				,
+				imageName,
+				appId,
+				imageId,
+				serviceName,
+			] = matchingTag as RegExpMatchArray;
+
+			const dockerImageId = img.Id;
+
+			return {
+				name: imageName,
+				appId: parseInt(appId, 10),
+				imageId: parseInt(imageId, 10),
+				serviceName,
+				dockerImageId,
+			};
+		});
 }
 
 export function getAvailable(services: Service[]): Image[] {

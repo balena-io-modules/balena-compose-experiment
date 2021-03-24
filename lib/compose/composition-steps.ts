@@ -223,18 +223,15 @@ export function getExecutors(app: {
 		fetch: async (step) => {
 			const startTime = process.hrtime();
 			app.callbacks.fetchStart();
-			const [fetchOpts, availableServices] = await Promise.all([
-				config.get('fetchOptions'),
-				serviceManager.getAll(),
-			]);
+			const fetchOpts = config.get('fetchOptions');
 
 			// TODO: serviceManager.getAll may not contain all services
 			// at this point, we might want to pass them as arguments to fetch
-			const availableImages = images.getAvailable(availableServices);
+			const availableImages = await images.getAvailableFromEngine();
 
 			const opts = {
 				deltaSource: app.callbacks.bestDeltaSource(step.image, availableImages),
-				...fetchOpts,
+				...fetchOpts(),
 			};
 
 			await images.triggerFetch(
