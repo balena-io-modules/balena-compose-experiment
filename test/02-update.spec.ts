@@ -5,7 +5,7 @@ import { testWithData } from './mocked-dockerode';
 // import * as dockerode from 'dockerode';
 
 describe('Composer update:', function () {
-	it('should be able to update state no containers', async function () {
+	it('should make no changes when target state is the same as current state', async function () {
 		const options: ComposerOptions = {
 			uuid: '1',
 			deviceApiKey: '123',
@@ -42,70 +42,64 @@ describe('Composer update:', function () {
 		// 	},
 		// };
 
-		const networks = {
-			supervisor0: {
-				Name: '123_default',
-				Id: '4e6a4ae2dc07f09503c0ffa15b85e7e05cc7b80c0b38ba2e56f14fda4685bf5b',
-				Created: '2020-06-11T09:04:00.299972855Z',
-				Scope: 'local',
-				Driver: 'bridge',
-				EnableIPv6: false,
-				IPAM: {
-					Driver: 'default',
-					Options: {},
-					Config: [
-						{
-							Subnet: '172.17.0.0/16',
-							Gateway: '172.17.0.1',
-						},
-					],
-				},
-				Internal: false,
-				Attachable: false,
-				Ingress: false,
-				ConfigFrom: {
-					Network: '',
-				},
-				ConfigOnly: false,
-				Containers: {},
+		const network = {
+			Name: '123_default',
+			Id: '4e6a4ae2dc07f09503c0ffa15b85e7e05cc7b80c0b38ba2e56f14fda4685bf5b',
+			Created: '2020-06-11T09:04:00.299972855Z',
+			Scope: 'local',
+			Driver: 'bridge',
+			EnableIPv6: false,
+			IPAM: {
+				Driver: 'default',
 				Options: {},
-				Labels: {
-					'io.balena.supervised': 'true',
-				},
+				Config: [
+					{
+						Subnet: '172.17.0.0/16',
+						Gateway: '172.17.0.1',
+					},
+				],
 			},
-			'123_default': {
-				Name: '123_default',
-				Id: '4e6a4ae2dc07f09503c0ffa15b85e7e05cc7b80c0b38ba2e56f14fda4685bf5b',
-				Created: '2020-06-11T09:04:00.299972855Z',
-				Scope: 'local',
-				Driver: 'bridge',
-				EnableIPv6: false,
-				IPAM: {
-					Driver: 'default',
-					Options: {},
-					Config: [
-						{
-							Subnet: '172.17.0.0/16',
-							Gateway: '172.17.0.1',
-						},
-					],
-				},
-				Internal: false,
-				Attachable: false,
-				Ingress: false,
-				ConfigFrom: {
-					Network: '',
-				},
-				ConfigOnly: false,
-				Containers: {},
-				Options: {},
-				Labels: {
-					'io.balena.supervised': 'true',
-				},
+			Internal: false,
+			Attachable: false,
+			Ingress: false,
+			ConfigFrom: {
+				Network: '',
+			},
+			ConfigOnly: false,
+			Containers: {},
+			Options: {},
+			Labels: {
+				'io.balena.supervised': 'true',
 			},
 		};
+		const networks = {
+			supervisor0: network, // default supervisor network
+			'123_default': network,
+			default: network,
+		};
 
-		await testWithData({ containers: [], networks }, async () => {
+		const containers = [
+			{
+				Id: '123',
+				Name: 'something_123_123',
+				State: {
+					Running: true,
+				},
+				Config: {
+					Hostname: 'hostymc-hostface',
+					Labels: {
+						'io.balena.app-id': '123',
+						'io.balena.service-name': 'testitnow',
+						'io.balena.service-id': 1,
+					},
+				},
+				HostConfig: {
+					Ulimits: [],
+				},
+			},
+		];
+
+		await testWithData({ containers, networks }, async () => {
 			const targetState: ComposerTarget = {
 				name: 'something',
 				networks: {},
