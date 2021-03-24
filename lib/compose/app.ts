@@ -338,16 +338,15 @@ export class App {
 		 * @param serviceTarget
 		 */
 		const shouldBeStopped = (
-			serviceCurrent: Service,
+			_serviceCurrent: Service,
 			serviceTarget: Service,
 		) => {
 			// check that we want to stop it, and that it isn't stopped
-			console.warn('CALLED SHOULD BE STOPPED');
-			console.log(serviceCurrent);
 			return (
 				serviceTarget.config.running === false
 				// When we issue a stop step, we remove the containerId from this structure.
 				// We check if the container has been removed first, so that we can ensure we're not providing multiple stop steps.
+				// TODO: figure out how to check that the container was already stopped
 				// applicationManager.containerStarted[serviceCurrent.containerId!] == null
 			);
 		};
