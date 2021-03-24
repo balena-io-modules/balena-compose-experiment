@@ -22,7 +22,7 @@ export function getStepsFromStrategy(
 			if (context.needsDownload) {
 				return generateStep('fetch', {
 					image: imageManager.imageFromService(context.target),
-					serviceName: context.target.name!,
+					serviceName: context.target.serviceName!,
 				});
 			} else if (context.dependenciesMetForKill) {
 				// We only kill when dependencies are already met, so that we minimize downtime
@@ -37,7 +37,7 @@ export function getStepsFromStrategy(
 			if (context.needsDownload) {
 				return generateStep('fetch', {
 					image: imageManager.imageFromService(context.target),
-					serviceName: context.target.name!,
+					serviceName: context.target.serviceName!,
 				});
 			} else if (context.needsSpecialKill && context.dependenciesMetForKill) {
 				return generateStep('kill', { current: context.current });

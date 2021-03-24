@@ -120,12 +120,12 @@ export async function updateMetadata(service: Service, target: Service) {
 	const svc = await get(service);
 	if (svc.containerId == null) {
 		throw new InternalInconsistencyError(
-			`No containerId provided for service ${service.name} in ServiceManager.updateMetadata. Service: ${service}`,
+			`No containerId provided for service ${service.serviceName} in ServiceManager.updateMetadata. Service: ${service}`,
 		);
 	}
 
 	await docker.getContainer(svc.containerId).rename({
-		name: `${service.name}_${target.imageId}_${target.releaseId}`,
+		name: `${service.serviceName}_${target.imageId}_${target.releaseId}`,
 	});
 }
 
@@ -156,7 +156,7 @@ export async function remove(service: Service) {
 
 	if (existingService.containerId == null) {
 		throw new InternalInconsistencyError(
-			`No containerId provided for service ${service.name} in ServiceManager.updateMetadata. Service: ${service}`,
+			`No containerId provided for service ${service.serviceName} in ServiceManager.updateMetadata. Service: ${service}`,
 		);
 	}
 
@@ -187,7 +187,7 @@ export async function create(service: Service) {
 		const existing = await get(service);
 		if (existing.containerId == null) {
 			throw new InternalInconsistencyError(
-				`No containerId provided for service ${service.name} in ServiceManager.updateMetadata. Service: ${service}`,
+				`No containerId provided for service ${service.serviceName} in ServiceManager.updateMetadata. Service: ${service}`,
 			);
 		}
 		return docker.getContainer(existing.containerId);
@@ -220,7 +220,8 @@ export async function create(service: Service) {
 			containerIds: serviceContainerIds,
 		});
 		const nets = serviceNetworksToDockerNetworks(service.extraNetworksToJoin());
-		const serviceIdentifierForLog = service.name ?? service.imageId.toString();
+		const serviceIdentifierForLog =
+			service.serviceName ?? service.imageId.toString();
 
 		logger.logSystemEvent(LogTypes.installService, { service });
 		reportNewStatus(serviceIdentifierForLog, service, 'Installing');
@@ -307,7 +308,7 @@ export async function start(service: Service) {
 		const imageId = service.imageId;
 		if (serviceId == null || imageId == null) {
 			throw new InternalInconsistencyError(
-				`serviceId and imageId not defined for service: ${service.name} in ServiceManager.start`,
+				`serviceId and imageId not defined for service: ${service.serviceName} in ServiceManager.start`,
 			);
 		}
 
@@ -419,13 +420,13 @@ export async function attachToRunning() {
 			const imageId = service.imageId;
 			if (serviceId == null || imageId == null) {
 				throw new InternalInconsistencyError(
-					`serviceId and imageId not defined for service: ${service.name} in ServiceManager.start`,
+					`serviceId and imageId not defined for service: ${service.serviceName} in ServiceManager.start`,
 				);
 			}
 
 			if (service.containerId == null) {
 				throw new InternalInconsistencyError(
-					`containerId not defined for service: ${service.name} in ServiceManager.attachToRunning`,
+					`containerId not defined for service: ${service.serviceName} in ServiceManager.attachToRunning`,
 				);
 			}
 			logger.attach(service.containerId, {
@@ -566,13 +567,13 @@ async function prepareForHandover(service: Service) {
 	const svc = await get(service);
 	if (svc.containerId == null) {
 		throw new InternalInconsistencyError(
-			`No containerId provided for service ${service.name} in ServiceManager.prepareForHandover. Service: ${service}`,
+			`No containerId provided for service ${service.serviceName} in ServiceManager.prepareForHandover. Service: ${service}`,
 		);
 	}
 	const container = docker.getContainer(svc.containerId);
 	await container.update({ RestartPolicy: {} });
 	return await container.rename({
-		name: `old_${service.name}_${service.imageId}_${service.imageId}_${service.releaseId}`,
+		name: `old_${service.serviceName}_${service.imageId}_${service.imageId}_${service.releaseId}`,
 	});
 }
 
@@ -594,7 +595,7 @@ function waitToKill(service: Service, timeout: number | string) {
 				return wait();
 			} else {
 				log.info(
-					`Handover timeout has passed, assuming handover was completed for service ${service.name}`,
+					`Handover timeout has passed, assuming handover was completed for service ${service.serviceName}`,
 				);
 			}
 		});

@@ -56,7 +56,7 @@ const appUpdatePollInterval: number = config.get('appUpdatePollInterval');
 
 type ServiceInfo = Pick<
 	Service,
-	'imageName' | 'appId' | 'serviceId' | 'name' | 'imageId' | 'releaseId'
+	'imageName' | 'appId' | 'serviceId' | 'serviceName' | 'imageId' | 'releaseId'
 >;
 export function imageFromService(service: ServiceInfo): Image {
 	// We know these fields are defined because we create these images from target state
@@ -64,7 +64,7 @@ export function imageFromService(service: ServiceInfo): Image {
 		name: service.imageName!,
 		appId: service.appId,
 		serviceId: service.serviceId!,
-		serviceName: service.name!,
+		serviceName: service.serviceName!,
 		imageId: service.imageId!,
 		releaseId: service.releaseId!,
 		dependent: 0,
