@@ -34,6 +34,7 @@ export type ComposerOptions = {
 	hostNameOnHost?: string;
 	appUpdatePollInterval?: number;
 	deviceType?: string;
+	deviceName?: string;
 
 	// supervisor port
 	listenPort?: number;
@@ -165,6 +166,7 @@ const defaultComposerOptions: Partial<ComposerOptions> = {
 	deviceType: 'raspberrypi3',
 	appUpdatePollInterval: 900000,
 	hostNameOnHost: 'balena',
+	deviceName: 'balena',
 	listenPort: 48484,
 };
 
@@ -262,6 +264,7 @@ export class Composer {
 				.map((serviceId) => ({
 					serviceId,
 					appId: this.app,
+					releaseId: app.releaseId,
 					...app.services[serviceId],
 				}))
 				.map(async (svc: ServiceComposeConfig) => {
@@ -347,7 +350,7 @@ export class Composer {
 
 		const [downloading, availableImages] = await Promise.all([
 			imageManager.getDownloadingImageIds(),
-			imageManager.getAvailable(services[appId] ?? []),
+			imageManager.getAvailableFromEngine(),
 		]);
 
 		const containerIds = await serviceManager.getContainerIdMap(appId);

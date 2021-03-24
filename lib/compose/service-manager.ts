@@ -200,7 +200,7 @@ export async function create(service: Service) {
 			throw e;
 		}
 
-		const deviceName = await config.get('name');
+		const deviceName = await config.get('deviceName');
 		if (!isValidDeviceName(deviceName)) {
 			throw new Error(
 				'The device name contains a newline, which is unsupported by balena. ' +
