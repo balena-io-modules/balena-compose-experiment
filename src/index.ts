@@ -1,4 +1,4 @@
-import { Composer } from '../lib';
+import { Composer, ComposerTarget } from '../lib';
 
 async function up(composer: Composer, targetStatePath: string): Promise<void> {
 	const target_state = require(targetStatePath);
@@ -10,8 +10,14 @@ async function up(composer: Composer, targetStatePath: string): Promise<void> {
 	await composer.update(target_state);
 }
 
-async function down(_: Composer): Promise<void> {
-	throw new Error("not implemented");
+async function down(composer: Composer): Promise<void> {
+	const target_state: ComposerTarget = {
+		name: 'test1',
+		services: {},
+		volumes: {},
+		networks: {},
+	};
+	await composer.update(target_state);
 }
 
 async function main(): Promise<void> {
