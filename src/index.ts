@@ -1,5 +1,6 @@
 import { Composer, ComposerTarget } from '../lib';
 
+import logger from './logger';
 import { getSdk } from 'balena-sdk';
 import yargs from 'yargs';
 import { promises as fs } from 'fs';
@@ -78,9 +79,7 @@ async function up(args: any): Promise<void> {
 	}
 
 	const composer = new Composer(appId, config);
-
-	console.debug('initial state:', await composer.state());
-	console.debug('target state:', targetState);
+	composer.listen(logger);
 
 	await composer.update(targetState);
 }
@@ -116,6 +115,7 @@ async function down(args: any): Promise<void> {
 	const appId = (await balena.models.application.get(args.app)).id;
 
 	const composer = new Composer(appId, config);
+	composer.listen(logger);
 	await composer.update({ name: '', services: {}, volumes: {}, networks: {} });
 }
 
