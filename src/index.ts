@@ -1,11 +1,11 @@
-import { Composer } from '../lib';
+import { Composer, ComposerTarget } from '../lib';
 
 import { getSdk } from 'balena-sdk';
 import * as yargs from 'yargs';
 import { promises as fs } from 'fs';
 
 async function up(args: any): Promise<void> {
-	let targetState;
+	let targetState: ComposerTarget;
 	if (args.file) {
 		const data = await fs.readFile(args.file, { encoding: 'utf-8' });
 		targetState = JSON.parse(data);
@@ -42,49 +42,49 @@ async function down(args: any): Promise<void> {
 	await composer.update({ name: '', services: {}, volumes: {}, networks: {} });
 }
 
-async function main(): Promise<void> {
-	try {
-		await yargs(process.argv.slice(2))
-			.usage('$0 [global args] [command] [args]')
-			.option('file', {
-				alias: 'f',
-				type: 'string',
-				description: 'target state to apply',
-			})
-			.option('appid', {
-				alias: 'a',
-				type: 'number',
-			})
-			.option('uuid', {
-				alias: 'u',
-				type: 'string',
-			})
-			.option('api-key', {
-				type: 'string',
-			})
-			.option('api-url', {
-				type: 'string',
-			})
-			.option('api-url', {
-				type: 'string',
-			})
-			.option('delta-url', {
-				type: 'string',
-			})
-			.command('up', 'apply target state', {}, up)
-			.command('down', 'reset to empty state', {}, down)
-			.demandCommand()
-			.help().argv;
-	} catch (e) {
-		throw e;
-	}
-}
-
-main()
-	.then(() => {
-		process.exit(0);
+const parser = yargs(process.argv.slice(2))
+	.usage('$0 [global args] [command] [args]')
+	.option('file', {
+		alias: 'f',
+		type: 'string',
+		description: 'target state to apply',
 	})
-	.catch((e) => {
-		console.error(e);
+	.option('appid', {
+		alias: 'a',
+		type: 'number',
+	})
+	.option('uuid', {
+		alias: 'u',
+		type: 'string',
+	})
+	.option('api-key', {
+		type: 'string',
+	})
+	.option('api-url', {
+		type: 'string',
+	})
+	.option('api-url', {
+		type: 'string',
+	})
+	.option('delta-url', {
+		type: 'string',
+	})
+	.command('up', 'apply target state', {}, up)
+	.command('down', 'reset to empty state', {}, down)
+	.demandCommand()
+	.help()
+	.fail(function (msg, err, instance) {
+		if (err) {
+			// TODO: I should be able to throw this error but it gets eaten somewhere
+			console.error(err);
+			process.exit(1);
+		}
+
+		// Not an exception, show help
+		console.error(msg);
+		console.error(instance.help());
 		process.exit(1);
 	});
+(async () => {
+	await parser.parse();
+})();
