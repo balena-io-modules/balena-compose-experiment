@@ -27,7 +27,7 @@
     "build": "npm run clean && npm run build:lib && npm run build:cli",
     "build:lib": "tsc",
     "build:cli": "webpack",
-    "cli": "ts-node --files src/index.ts",
+    "compose": "ts-node --files src/index.ts",
     "lint": "balena-lint --typescript lib src test",
     "lint-fix": "balena-lint --typescript --fix lib src test",
     "test:node": "TS_NODE_FILES=true mocha -r ts-node/register --reporter spec test/**/*.spec.ts",
