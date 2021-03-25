@@ -2,21 +2,20 @@ import { Composer } from '../lib';
 
 import { getSdk } from 'balena-sdk';
 import * as yargs from 'yargs';
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 
 async function up(args: any): Promise<void> {
 	let targetState;
 	if (args.file) {
-		const data  = fs.readFileSync(args.file);
+		const data = await fs.readFile(args.file, { encoding: 'utf-8' });
 		targetState = JSON.parse(data);
-
 	} else {
-		const balena = getSdk({ apiUrl: args.apiUrl ?? 'https://api.balena-cloud.com' });
+		const balena = getSdk({
+			apiUrl: args.apiUrl ?? 'https://api.balena-cloud.com',
+		});
 		await balena.auth.loginWithToken(args.apiKey);
 		targetState = (
-			await balena.models.device.getSupervisorTargetState(
-				args.uuid,
-			)
+			await balena.models.device.getSupervisorTargetState(args.uuid)
 		).local.apps[args.appid];
 	}
 
@@ -28,8 +27,8 @@ async function up(args: any): Promise<void> {
 		deltaEndpoint: args.deltaUrl ?? undefined,
 	});
 
-	console.debug("initial state:", await composer.state());
-	console.debug("target state:", targetState);
+	console.debug('initial state:', await composer.state());
+	console.debug('target state:', targetState);
 
 	await composer.update(targetState);
 }
@@ -40,7 +39,7 @@ async function down(args: any): Promise<void> {
 		deviceApiKey: args.apiKey,
 		delta: args.delta,
 	});
-	await composer.update({name: "", services: {}, volumes: {}, networks: {}});
+	await composer.update({ name: '', services: {}, volumes: {}, networks: {} });
 }
 
 async function main(): Promise<void> {
@@ -50,7 +49,7 @@ async function main(): Promise<void> {
 			.option('file', {
 				alias: 'f',
 				type: 'string',
-				description: 'target state to apply'
+				description: 'target state to apply',
 			})
 			.option('appid', {
 				alias: 'a',
@@ -75,11 +74,9 @@ async function main(): Promise<void> {
 			.command('up', 'apply target state', {}, up)
 			.command('down', 'reset to empty state', {}, down)
 			.demandCommand()
-			.help()
-			.argv;
-
+			.help().argv;
 	} catch (e) {
-		throw e
+		throw e;
 	}
 }
 
@@ -87,7 +84,7 @@ main()
 	.then(() => {
 		process.exit(0);
 	})
-	.catch(e => {
+	.catch((e) => {
 		console.error(e);
 		process.exit(1);
 	});
