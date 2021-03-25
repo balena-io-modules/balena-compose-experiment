@@ -19,7 +19,10 @@ import constants from './constants';
 import { InternalInconsistencyError, NotFoundError } from './errors';
 import { LabelObject } from './types';
 import * as updateLock from './update-lock';
-import log from './console';
+import log, { LogListener } from './console';
+
+// Re export
+export { LogListener, LogLevel } from './console';
 
 export type ComposerOptions = {
 	uuid: string;
@@ -105,29 +108,24 @@ export async function lockingIfNecessary<T extends unknown>(
 const actionExecutors = getExecutors({
 	lockFn: lockingIfNecessary,
 	callbacks: {
-		containerStarted: (id: string | null) => {
-			// containerStarted[id] = true;
-			console.log('container started', id);
+		containerStarted: (_id: string | null) => {
+			// TODO: containerStarted[id] = true;
 		},
-		containerKilled: (id: string | null) => {
-			// delete containerStarted[id];
-			console.log('container killed', id);
+		containerKilled: (_id: string | null) => {
+			// TODO: delete containerStarted[id];
 		},
 		fetchStart: () => {
-			// fetchesInProgress += 1;
-			console.log('fetch start');
+			// TODO: fetchesInProgress += 1;
 		},
 		fetchEnd: () => {
-			console.log('fetch ended');
-			// fetchesInProgress -= 1;
+			// TODO: fetchesInProgress -= 1;
 		},
 		fetchTime: (time) => {
-			console.log('fetch time', time);
-			// timeSpentFetching += time;
+			log.info('fetch time', time);
+			// TODO: timeSpentFetching += time;
 		},
-		stateReport: (state) => {
-			console.log('current state', state);
-			// reportCurrentState(state);
+		stateReport: (_state) => {
+			// TODO: reportCurrentState(state);
 		},
 		bestDeltaSource,
 	},
@@ -442,8 +440,12 @@ export class Composer {
 		this.runtimeState.cancel();
 	}
 
+	public listen(listener: LogListener) {
+		log.listen(listener);
+	}
+
 	// Add listeners for container events
-	public listen(_listener: any) {
+	public onStateChange(_listener: any) {
 		// TODO
 	}
 }
