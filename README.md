@@ -13,8 +13,6 @@ make it more compatible with edge devices.
   to optimize for device constraints.
 - Application controlled updates through the use of [application update locks](https://www.balena.io/docs/learn/deploy/release-strategy/update-locking/#application-update-locks)
   for critical sections of code.
-- Make use of [container contracts](https://www.balena.io/docs/learn/develop/container-contracts/#container-contracts)?
-  _TBD: not sure if this should be the responsability of this library_
 
 Balena compose is (will be) used by [Balena Supervisor](https://github.com/balena-io/balena-supervisor/),
 Balena's on-device agent for managing a single application lifecycle.
@@ -25,34 +23,24 @@ Balena's on-device agent for managing a single application lifecycle.
 - `npm i`
 - `npm run build`
 
-## Testing
-
-- Create an X86_64 balena application (e.g. `balena-compose`)
-- Using the [balena CLI](https://github.com/balena-io/balena-cli/) to register a new device: `balena register balena-compose` and copy the returned uuid.
-- On the node console
+# Using the CLI
 
 ```
-$ node
-> { getSdk } = require('balena-sdk')
-> balena = getSdk({apiUrl: 'https://api.balena-cloud.com/'})
-> balena.models.device.generateDeviceKey('<uuid>').then(console.log); // this will give you a device api key
-> { Composer } = require('./build/lib/')
-> compose = new Composer('<appId>', {uuid: '<uuid>', deviceApiKey: '<appId>'});
-> balena.models.device.getSupervisorTargetState('<uuid>').then(state => compose.update(state.local.apps['<appId>']))
+# Updates the application with the given name on the device.
+# Configuration is obtained fom config.json and state info
+# is obtained from the state endpoint on the cloud
+$ npm run compose -- up -a <appName>
 ```
 
-# How to use it
+# Using the library
 
 ```typescript
 import { Composer } from '@balena/compose';
 
 // Construct a new composer for app id (soon to be changed to app uuid)
-const composer = new Composer('12345', { apiKey: 'abcdef',
-  apiEndpoint: 'https://api.balena-cloud.com',
-  deltaEndpoint: 'https://delta.balena-cloud.com',
-  registryEndpoint: 'registry2.balena-cloud.com',
-  dockerSocket: '...'
-  // Other options, device type? arch?
+const composer = new Composer('12345', { 
+  uuid: 'deadbeef',
+  deviceApiKey: 'abcdef',
   });
 
 
@@ -73,22 +61,6 @@ await composer.update('deadbeef', {services: {main: {...}}, volumes: {}, network
 await composer.state();
 ```
 
-# The CLI
-
-```
-# Updates the application with the given name on the device.
-# Configuration is obtained fom config.json and uuid and state info
-# is obtained from the state endpoint on the cloud
-$ balena-compose up --app <appName>
-
-
-# Looks for a docker-compose.yml in the local folder and updates the
-# local application on the current device
-# TODO: This should be opened for discussion, this probably duplicates some balena-cli
-# functionality and it is uncertain where the cloud information could be
-# obtained from.
-$ balena-compose up
-```
 
 # Hack week
 
@@ -103,9 +75,9 @@ and adapt this code to the requirements defined for this library.
 
 - [x] Setup typescript repo
 - [ x] Extract and review typescript types for `Composer`, `Service`, `Volume` and `Network` from supervisor codebase
-- [ ] Define public APIs for the libraries
-- [ ] Write tests to specify API behavior
-  - [ ] Improve [dockerode test mock](https://github.com/balena-io/balena-supervisor/blob/78821824ad4395502be498b696acf0f57ccd65d0/test/lib/mocked-dockerode.ts).
+- [x] Define public APIs for the libraries
+- [-] Write tests to specify API behavior
+  - [x] Improve [dockerode test mock](https://github.com/balena-io/balena-supervisor/blob/78821824ad4395502be498b696acf0f57ccd65d0/test/lib/mocked-dockerode.ts).
 - [x] Write/adapt modules for
   - [x] Composer
   - [x] Services
@@ -115,7 +87,7 @@ and adapt this code to the requirements defined for this library.
   - [x] Contract validation
   - [x] Delta management
   - [x] Update locks
-- [ ] Write CLI
+- [x] Write CLI
 
 ## Code Improvement goals
 
