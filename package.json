@@ -24,7 +24,10 @@
   ],
   "scripts": {
     "clean": "rimraf build bin",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && npm run build:lib && npm run build:cli",
+    "build:lib": "tsc",
+    "build:cli": "webpack",
+    "cli": "ts-node --files src/index.ts",
     "lint": "balena-lint --typescript lib test",
     "lint-fix": "balena-lint --typescript --fix lib test",
     "test:node": "TS_NODE_FILES=true mocha -r ts-node/register --reporter spec test/**/*.spec.ts",
