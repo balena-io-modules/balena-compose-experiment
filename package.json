@@ -24,9 +24,7 @@
   ],
   "scripts": {
     "clean": "rimraf build bin",
-    "build": "npm run clean && npm run build:lib && npm run build:cli",
-    "build:lib": "tsc",
-    "build:cli": "webpack",
+    "build": "npm run clean && tsc",
     "compose": "ts-node --files src/index.ts",
     "lint": "balena-lint --typescript lib src test",
     "lint-fix": "balena-lint --typescript --fix lib src test",
@@ -50,9 +48,6 @@
     "ts-loader": "^8.0.18",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.3",
-    "webpack": "^5.28.0",
-    "webpack-cli": "^4.5.0",
-    "webpack-node-externals": "^2.5.2",
     "winston": "^3.3.3"
   },
   "dependencies": {
