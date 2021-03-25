@@ -349,9 +349,10 @@ export class Composer {
 			app = new App(
 				{
 					appId,
-					services: [],
-					networks: {},
-					volumes: {},
+					commit,
+					services: services[appId] ?? [],
+					networks: _.keyBy(networks[appId], 'name'),
+					volumes: _.keyBy(volumes[appId], 'name'),
 				},
 				false,
 			);

@@ -1,4 +1,4 @@
-// import { expect } from './chai';
+import { expect } from './chai';
 import { Composer, ComposerOptions, ComposerTarget } from '../lib/index';
 import { testWithData } from './mocked-dockerode';
 // import { Service } from 'dockerode';
@@ -106,10 +106,36 @@ describe('Composer update:', function () {
 				volumes: {},
 				services: {},
 			};
-			const finalState = await instance.update(targetState);
-			console.log(finalState);
 
-			// await expect(instance.state()).to.eventually.deep.equal(expected);
+			const expected = {
+				status: 'running',
+				app: 123,
+				release: 'abc',
+				services: {},
+				networks: {
+					default: {
+						appId: 123,
+						name: 'default',
+						config: {
+							driver: 'bridge',
+							ipam: {
+								driver: 'default',
+								config: [{ subnet: '172.17.0.0/16', gateway: '172.17.0.1' }],
+								options: {},
+							},
+							enableIPv6: false,
+							internal: false,
+							labels: {},
+							options: {},
+						},
+					},
+				},
+				volumes: {},
+			};
+
+			await expect(instance.update(targetState)).to.eventually.deep.equal(
+				expected,
+			);
 		});
 	});
 });

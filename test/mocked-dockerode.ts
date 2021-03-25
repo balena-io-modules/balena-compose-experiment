@@ -179,7 +179,7 @@ function createMockedDockerode(mockData: TestData) {
 			start: async () => {
 				addAction('start');
 				data.containers = data.containers.map((c: any) => {
-					if (c.containerId === id) {
+					if (c.Id === id) {
 						c.status = 'Installing';
 					}
 					return c;
@@ -188,7 +188,7 @@ function createMockedDockerode(mockData: TestData) {
 			stop: async () => {
 				addAction('stop');
 				data.containers = data.containers.map((c: any) => {
-					if (c.containerId === id) {
+					if (c.Id === id) {
 						c.status = 'Stopping';
 					}
 					return c;
@@ -196,12 +196,15 @@ function createMockedDockerode(mockData: TestData) {
 			},
 			remove: async () => {
 				addAction('remove');
-				data.containers = data.containers.map((c: any) => {
-					if (c.containerId === id) {
-						c.status = 'removing';
-					}
-					return c;
-				});
+				// TODO: Not sure if containers of status 'removing' should exist
+				// here for some test cases, we are immediately removing for now
+				// data.containers = data.containers.map((c: any) => {
+				// 	if (c.Id === id) {
+				// 		c.status = 'removing';
+				// 	}
+				// 	return c;
+				// });
+				data.containers = data.containers.filter((c: any) => c.Id !== id);
 			},
 		} as dockerode.Container;
 	};
