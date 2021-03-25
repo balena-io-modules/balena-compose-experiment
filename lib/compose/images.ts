@@ -76,6 +76,8 @@ export function bestDeltaSource(
 	available: Image[],
 ): string | null {
 	if (!image.dependent) {
+		// TODO: this could be replaced by finding an image with a
+		// specific tag
 		for (const availableImage of available) {
 			if (
 				availableImage.serviceName === image.serviceName &&
@@ -160,7 +162,8 @@ export async function triggerFetch(
 
 			// tag image with some metadata
 			const { repo } = await dockerUtils.getRepoAndTag(image.name);
-			await docker.getImage(id).tag({
+			const dockerImage = docker.getImage(id);
+			await dockerImage.tag({
 				repo,
 				tag: `${image.appId}_${image.imageId}_${image.serviceName}`,
 			});

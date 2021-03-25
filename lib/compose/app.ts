@@ -459,6 +459,7 @@ export class App {
 		let needsDownload = false;
 		// don't attempt to fetch images whilst in local mode, as they should be there already
 		if (!context.localMode) {
+			// TODO: could this be docker.inspectByName(target.name) ??
 			needsDownload = !_.some(
 				context.availableImages,
 				(image) =>
@@ -705,6 +706,7 @@ export class App {
 				const dependencyService = _.find(targetApp.services, {
 					serviceName: dependency,
 				});
+				// TODO: This could also be obtained by trying to get the image by name from the engine
 				if (
 					!_.some(
 						availableImages,
