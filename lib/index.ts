@@ -328,7 +328,7 @@ export class Composer {
 				{
 					appId,
 					commit,
-					services: services[appId],
+					services: services[appId] ?? [],
 					networks: _.keyBy(networks[appId], 'name'),
 					volumes: _.keyBy(volumes[appId], 'name'),
 				},
