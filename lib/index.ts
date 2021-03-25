@@ -19,6 +19,7 @@ import constants from './constants';
 import { InternalInconsistencyError, NotFoundError } from './errors';
 import { LabelObject } from './types';
 import * as updateLock from './update-lock';
+import log from './console';
 
 export type ComposerOptions = {
 	uuid: string;
@@ -34,6 +35,12 @@ export type ComposerOptions = {
 	hostNameOnHost?: string;
 	appUpdatePollInterval?: number;
 	deviceType?: string;
+	deviceName?: string;
+	deviceArch?: string;
+	osVersion?: string;
+
+	// supervisor port
+	listenPort?: number;
 };
 
 type ComposerRuntime = {
@@ -154,14 +161,18 @@ async function executeStep(
 const defaultComposerOptions: Partial<ComposerOptions> = {
 	apiEndpoint: 'https://api.balena-cloud.com',
 	deltaEndpoint: 'https://delta.balena-cloud.com',
-	delta: true,
+	delta: false,
 	deltaRequestTimeout: 30000,
 	deltaRetryCount: 30,
 	deltaRetryInterval: 10000,
 	deltaVersion: 3,
 	deviceType: 'raspberrypi3',
+	deviceArch: 'armv7',
+	osVersion: '2.72.1',
 	appUpdatePollInterval: 900000,
 	hostNameOnHost: 'balena',
+	deviceName: 'balena',
+	listenPort: 48484,
 };
 
 export class Composer {
@@ -248,13 +259,23 @@ export class Composer {
 			supervisorApiHost,
 			hostPathExists,
 			hostnameOnHost: this.options.hostNameOnHost,
+			listenPort: this.options.listenPort,
+			uuid: this.options.uuid,
+			deviceType: this.options.deviceType,
+			deviceArch: this.options.deviceArch,
+			osVersion: this.options.osVersion,
 		};
 
 		// In the db, the services are an array, but here we switch them to an
 		// object so that they are consistent
 		const services: Service[] = await Promise.all(
 			keys(app.services ?? {})
-				.map((serviceId) => ({ serviceId, ...app.services[serviceId] }))
+				.map((serviceId) => ({
+					serviceId,
+					appId: this.appId,
+					releaseId: app.releaseId,
+					...app.services[serviceId],
+				}))
 				.map(async (svc: ServiceComposeConfig) => {
 					// Try to fill the image id if the image is downloaded
 					let imageInfo: ImageInspectInfo | undefined;
@@ -317,9 +338,10 @@ export class Composer {
 			app = new App(
 				{
 					appId,
-					services: [],
-					networks: {},
-					volumes: {},
+					commit,
+					services: services[appId] ?? [],
+					networks: _.keyBy(networks[appId], 'name') ?? {},
+					volumes: _.keyBy(volumes[appId], 'name') ?? {},
 				},
 				false,
 			);
@@ -338,7 +360,7 @@ export class Composer {
 
 		const [downloading, availableImages] = await Promise.all([
 			imageManager.getDownloadingImageIds(),
-			imageManager.getAvailable(services[appId] ?? []),
+			imageManager.getAvailableFromEngine(),
 		]);
 
 		const containerIds = await serviceManager.getContainerIdMap(appId);
@@ -402,6 +424,7 @@ export class Composer {
 		return await new Promise<ComposerState>(async (resolve, reject) => {
 			try {
 				// update the runtime state before calling the apply function
+				log.info('Applying target state');
 				this.setRuntimeState('running', reject);
 				return resolve(await applyTarget(target));
 			} catch (e) {
@@ -409,6 +432,7 @@ export class Composer {
 			} finally {
 				// reset the runtime state
 				this.setRuntimeState('idle');
+				log.info('Target state applied');
 			}
 		});
 	}

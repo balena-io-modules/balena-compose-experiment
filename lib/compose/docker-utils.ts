@@ -19,7 +19,7 @@ import log from '../console';
 
 export type FetchOptions = {
 	uuid: string | null | undefined;
-	currentApiKey: string;
+	deviceApiKey: string;
 	apiEndpoint: string;
 	deltaEndpoint: string;
 	delta: boolean;
@@ -212,15 +212,14 @@ export async function fetchDeltaWithProgress(
 
 export async function fetchImageWithProgress(
 	image: string,
-	{ uuid, currentApiKey }: FetchOptions,
+	{ uuid, deviceApiKey }: FetchOptions,
 	onProgress: ProgressCallback,
 ): Promise<string> {
 	const { registry } = await dockerToolbelt.getRegistryAndName(image);
-
 	const dockerOpts = {
 		authconfig: {
 			username: `d_${uuid}`,
-			password: currentApiKey,
+			password: deviceApiKey,
 			serverAddress: registry,
 		},
 	};
@@ -346,7 +345,7 @@ const getAuthToken = memoizee(
 		const tokenOpts: request.requestLib.CoreOptions = {
 			auth: {
 				user: `d_${deltaOpts.uuid}`,
-				pass: deltaOpts.currentApiKey,
+				pass: deltaOpts.deviceApiKey,
 				sendImmediately: true,
 			},
 			json: true,

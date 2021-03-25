@@ -16,7 +16,6 @@
 	},
 	"include": [
 		"lib/**/*",
-		"src/**/*",
 		"test/**/*",
 		"typings/**/*.d.ts"
 	]

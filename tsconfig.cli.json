@@ -1,0 +1,13 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noUnusedParameters": true,
+		"noUnusedLocals": true,
+		"preserveConstEnums": true,
+		"removeComments": true
+	},
+	"include": ["src/**/*", "typings/**/*.d.ts"],
+	"exclude": [
+		"node_modules"
+	]
+}
