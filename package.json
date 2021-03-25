@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "clean": "rimraf build bin",
-    "build": "npm run clean && build:lib && build:cli",
+    "build": "npm run clean && npm run build:lib && npm run build:cli",
     "build:lib": "tsc",
     "build:cli": "webpack",
     "cli": "ts-node --files src/index.ts",
