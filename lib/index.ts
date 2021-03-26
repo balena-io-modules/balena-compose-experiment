@@ -430,7 +430,7 @@ export class Composer {
 			} finally {
 				// reset the runtime state
 				this.setRuntimeState('idle');
-				log.info('Target state applied');
+				log.success('Target state applied');
 			}
 		});
 	}

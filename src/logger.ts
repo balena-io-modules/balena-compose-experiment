@@ -106,6 +106,9 @@ const logger = (level: LogLevel, msg: string, ...args: any) => {
 		case LogLevel.event:
 			log.event(msg, ...args);
 			break;
+		case LogLevel.success:
+			log.success(msg, ...args);
+			break;
 		default:
 			break;
 	}
