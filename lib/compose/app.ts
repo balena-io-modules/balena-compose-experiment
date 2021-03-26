@@ -61,8 +61,13 @@ export class App {
 		this.volumes = opts.volumes;
 		this.networks = opts.networks;
 
-		if (this.networks.default == null && isTargetState) {
-			// We always want a default network
+		if (
+			this.networks.default == null &&
+			isTargetState &&
+			!_.isEmpty(this.services)
+		) {
+			// We want a default network if there are any services
+			// in the target state
 			this.networks.default = Network.fromComposeObject(
 				'default',
 				opts.appId,
@@ -140,6 +145,7 @@ export class App {
 				svc.config.volumes.includes(v.name),
 			),
 		);
+
 		// Generate network steps
 		steps = steps.concat(
 			this.generateStepsForComponent(
