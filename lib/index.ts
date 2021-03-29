@@ -270,7 +270,7 @@ export class Composer {
 			keys(app.services ?? {})
 				.map((serviceId) => ({
 					serviceId,
-					appId: this.app,
+					appId: this.appId,
 					releaseId: app.releaseId,
 					...app.services[serviceId],
 				}))
