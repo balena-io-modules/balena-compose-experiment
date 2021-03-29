@@ -1,0 +1,23 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"outDir": "build",
+		"noUnusedParameters": true,
+		"noUnusedLocals": true,
+		"removeComments": true,
+		"sourceMap": true,
+		"strict": true,
+		"strictPropertyInitialization": false,
+		"target": "es2019",
+		"declaration": true,
+		"skipLibCheck": true,
+		"preserveConstEnums": true,
+		"resolveJsonModule": true
+	},
+	"include": [
+		"lib/**/*",
+		"src/**/*",
+		"test/**/*",
+		"typings/**/*.d.ts"
+	]
+}

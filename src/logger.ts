@@ -1,243 +1,117 @@
-import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
+import { TransformableInfo } from 'logform';
+import * as winston from 'winston';
 
-import * as config from './config';
-import * as db from './db';
-import * as eventTracker from './event-tracker';
-import { LogType } from './lib/log-types';
-import { writeLock } from './lib/update-lock';
-import {
-	BalenaLogBackend,
-	LocalLogBackend,
-	LogBackend,
-	LogMessage,
-} from './logging';
-import logMonitor from './logging/monitor';
+import { LogLevel } from '../lib';
 
-import * as globalEventBus from './event-bus';
-import superConsole from './lib/supervisor-console';
+const levels = {
+	error: 0,
+	warn: 1,
+	success: 2,
+	event: 3,
+	api: 4,
+	info: 5,
+	debug: 6,
+};
 
-type LogEventObject = Dictionary<any> | null;
+type LevelNames = keyof typeof LogLevel;
 
-// export class Logger {
-let backend: LogBackend | null = null;
-let balenaBackend: BalenaLogBackend | null = null;
-let localBackend: LocalLogBackend | null = null;
+const colors: { [key in LevelNames]: string | string[] } = {
+	error: 'red',
+	warn: 'yellow',
+	success: 'green',
+	event: 'cyan',
+	info: 'blue',
+	debug: 'magenta',
+	api: ['black', 'bgWhite'],
+};
 
-export const initialized = (async () => {
-	await config.initialized;
-	const {
-		apiEndpoint,
-		uuid,
-		deviceApiKey,
-		unmanaged,
-		loggingEnabled,
-		localMode,
-	} = await config.getMany([
-		'apiEndpoint',
-		'uuid',
-		'deviceApiKey',
-		'unmanaged',
-		'loggingEnabled',
-		'localMode',
-	]);
+const maxLevelLength = _(levels)
+	.map((_v, k) => k.length)
+	.max();
 
-	balenaBackend = new BalenaLogBackend(apiEndpoint, uuid, deviceApiKey);
-	localBackend = new LocalLogBackend();
-	backend = localMode ? localBackend : balenaBackend;
-	backend.unmanaged = unmanaged;
-	backend.publishEnabled = loggingEnabled;
+const uncolorize = winston.format.uncolorize();
 
-	if (!balenaBackend.isInitialised()) {
-		globalEventBus.getInstance().once('deviceProvisioned', async () => {
-			const conf = await config.getMany([
-				'uuid',
-				'apiEndpoint',
-				'deviceApiKey',
-			]);
+const formatter = winston.format.printf((args) => {
+	const { level, message } = args;
+	const { level: strippedLevel } = uncolorize.transform(args, {
+		level: true,
+		message: true,
+	}) as TransformableInfo;
+	return `[${level}]${_.repeat(
+		' ',
+		maxLevelLength! - strippedLevel.length + 1,
+	)}${message}`;
+});
 
-			// We use Boolean here, as deviceApiKey when unset
-			// is '' for legacy reasons. Once we're totally
-			// typescript, we can make it have a default value
-			// of undefined.
-			if (_.every(conf, Boolean)) {
-				// Everything is set, provide the values to the
-				// balenaBackend, and remove our listener
-				balenaBackend!.assignFields(
-					conf.apiEndpoint,
-					conf.uuid!,
-					conf.deviceApiKey,
-				);
-			}
-		});
+export const winstonLog = (winston.createLogger({
+	format: winston.format.combine(winston.format.colorize(), formatter),
+	transports: [new winston.transports.Console()],
+	// In the future we can reduce this logging level in
+	// certain scenarios, but for now we don't want to ignore
+	// any debugging without a rock solid method of making
+	// sure that debug logs are shown. For example a switch on
+	// the dashboard, a supervisor api call and supervisor
+	// process crash detection
+	level: 'debug',
+	levels,
+	// A bit hacky to get all the correct types for the logger
+	// below, we first cast to unknown so we can do what we
+	// like, and then assign every log level a function (which
+	// is what happens internally in winston)
+}) as unknown) as { [key in LevelNames]: (message: string) => void };
+
+winston.addColors(colors);
+
+const messageFormatter = (printFn: (message: string) => void) => {
+	return (...parts: any[]) => {
+		parts
+			.map((p) => {
+				if (p instanceof Error) {
+					return p.stack;
+				}
+				return p;
+			})
+			.join(' ')
+			.replace('\n', '\n  ')
+			.split('\n')
+			.forEach(printFn);
+	};
+};
+
+export const log: { [key in LevelNames]: (...messageParts: any[]) => void } = {
+	error: messageFormatter(winstonLog.error),
+	warn: messageFormatter(winstonLog.warn),
+	success: messageFormatter(winstonLog.success),
+	event: messageFormatter(winstonLog.event),
+	info: messageFormatter(winstonLog.info),
+	debug: messageFormatter(winstonLog.debug),
+	api: messageFormatter(winstonLog.api),
+};
+
+const logger = (level: LogLevel, msg: string, ...args: any) => {
+	switch (level) {
+		case LogLevel.error:
+			log.error(msg, ...args);
+			break;
+		case LogLevel.info:
+			log.info(msg, ...args);
+			break;
+		case LogLevel.debug:
+			log.debug(msg, ...args);
+			break;
+		case LogLevel.warn:
+			log.warn(msg, ...args);
+			break;
+		case LogLevel.event:
+			log.event(msg, ...args);
+			break;
+		case LogLevel.success:
+			log.success(msg, ...args);
+			break;
+		default:
+			break;
 	}
-})();
+};
 
-export function switchBackend(localMode: boolean) {
-	if (localMode) {
-		// Use the local mode backend
-		backend = localBackend;
-		superConsole.info('Switching logging backend to LocalLogBackend');
-	} else {
-		// Use the balena backend
-		backend = balenaBackend;
-		superConsole.info('Switching logging backend to BalenaLogBackend');
-	}
-}
-
-export function getLocalBackend(): LocalLogBackend {
-	// TODO: Think about this interface a little better, it would be
-	// nicer to proxy the logs via the logger module
-	if (localBackend == null) {
-		// TODO: Type this as an internal inconsistency error
-		throw new Error('Local backend logger is not defined.');
-	}
-	return localBackend;
-}
-
-export function enable(value: boolean = true) {
-	if (backend != null) {
-		backend.publishEnabled = value;
-	}
-}
-
-export function logDependent(message: LogMessage, device: { uuid: string }) {
-	if (backend != null) {
-		message.uuid = device.uuid;
-		backend.log(message);
-	}
-}
-
-export function log(message: LogMessage) {
-	if (backend != null) {
-		backend.log(message);
-	}
-}
-
-export function logSystemMessage(
-	message: string,
-	eventObj?: LogEventObject,
-	eventName?: string,
-	track: boolean = true,
-) {
-	const msgObj: LogMessage = { message, isSystem: true };
-	if (eventObj != null && eventObj.error != null) {
-		msgObj.isStdErr = true;
-	}
-	log(msgObj);
-	if (track) {
-		eventTracker.track(
-			eventName != null ? eventName : message,
-			eventObj != null ? eventObj : {},
-		);
-	}
-}
-
-export function lock(containerId: string): Bluebird.Disposer<() => void> {
-	return writeLock(containerId).disposer((release) => {
-		release();
-	});
-}
-
-export function attach(
-	containerId: string,
-	serviceInfo: { serviceId: number; imageId: number },
-): Bluebird<void> {
-	// First detect if we already have an attached log stream
-	// for this container
-	if (logMonitor.isAttached(containerId)) {
-		return Bluebird.resolve();
-	}
-
-	return Bluebird.using(lock(containerId), async () => {
-		logMonitor.attach(containerId, (message) => {
-			log({ ...serviceInfo, ...message });
-		});
-	});
-}
-
-export function logSystemEvent(
-	logType: LogType,
-	obj: LogEventObject,
-	track: boolean = true,
-): void {
-	let message = logType.humanName;
-	const objectName = objectNameForLogs(obj);
-	if (objectName != null) {
-		message += ` '${objectName}'`;
-	}
-	if (obj && obj.error != null) {
-		let errorMessage = obj.error.message;
-		if (_.isEmpty(errorMessage)) {
-			errorMessage =
-				obj.error.name !== 'Error' ? obj.error.name : 'Unknown cause';
-			superConsole.warn('Invalid error message', obj.error);
-		}
-		message += ` due to '${errorMessage}'`;
-	}
-	logSystemMessage(message, obj, logType.eventName, track);
-}
-
-export function logConfigChange(
-	conf: { [configName: string]: string },
-	{ success = false, err }: { success?: boolean; err?: Error } = {},
-) {
-	const obj: LogEventObject = { conf };
-	let message: string;
-	let eventName: string;
-	if (success) {
-		message = `Applied configuration change ${JSON.stringify(conf)}`;
-		eventName = 'Apply config change success';
-	} else if (err != null) {
-		message = `Error applying configuration change: ${err}`;
-		eventName = 'Apply config change error';
-		obj.error = err;
-	} else {
-		message = `Applying configuration change ${JSON.stringify(conf)}`;
-		eventName = 'Apply config change in progress';
-	}
-
-	logSystemMessage(message, obj, eventName);
-}
-
-export async function clearOutOfDateDBLogs(containerIds: string[]) {
-	superConsole.debug(
-		'Performing database cleanup for container log timestamps',
-	);
-	await db
-		.models('containerLogs')
-		.whereNotIn('containerId', containerIds)
-		.delete();
-}
-
-function objectNameForLogs(eventObj: LogEventObject): string | null {
-	if (eventObj == null) {
-		return null;
-	}
-	if (
-		eventObj.service != null &&
-		eventObj.service.serviceName != null &&
-		eventObj.service.config != null &&
-		eventObj.service.config.image != null
-	) {
-		return `${eventObj.service.serviceName} ${eventObj.service.config.image}`;
-	}
-
-	if (eventObj.image != null) {
-		return eventObj.image.name;
-	}
-
-	if (eventObj.network != null && eventObj.network.name != null) {
-		return eventObj.network.name;
-	}
-
-	if (eventObj.volume != null && eventObj.volume.name != null) {
-		return eventObj.volume.name;
-	}
-
-	if (eventObj.fields != null) {
-		return eventObj.fields.join(',');
-	}
-
-	return null;
-}
+export default logger;
