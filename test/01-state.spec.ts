@@ -5,7 +5,7 @@ import { testWithData } from './mocked-dockerode';
 // import * as dockerode from 'dockerode';
 
 describe('Composer state:', function () {
-	xit('should be able to get state for device with no services', async function () {
+	it('should be able to get state for device with no services', async function () {
 		const options: ComposerOptions = {
 			uuid: '1',
 			deviceApiKey: '123',
@@ -34,7 +34,7 @@ describe('Composer state:', function () {
 		});
 	});
 
-	xit('should be able to get state for device with services', async function () {
+	it('should be able to get state for device with services', async function () {
 		const options: ComposerOptions = {
 			uuid: '1',
 			deviceApiKey: '123',
@@ -70,14 +70,6 @@ describe('Composer state:', function () {
 				},
 			},
 		];
-
-		const expected = {
-			status: 'idle',
-			app: 789,
-			volumes: {},
-			networks: {},
-			services: { appId: '789' },
-		};
 
 		await testWithData({ containers }, async () => {
 			const state = await instance.state();
