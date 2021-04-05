@@ -5,6 +5,7 @@
   "homepage": "https://github.com/balena-io-playground/balena-compose#readme",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "private": true,
   "keywords": [
     "balena",
     "typescript",

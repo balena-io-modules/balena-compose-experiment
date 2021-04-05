@@ -4,7 +4,7 @@ import { testWithData } from './mocked-dockerode';
 // import { Service } from 'dockerode';
 // import * as dockerode from 'dockerode';
 
-describe('Composer update:', function () {
+describe.skip('Composer update:', function () {
 	it('should make no changes when target state is the same as current state', async function () {
 		const options: ComposerOptions = {
 			uuid: '1',
