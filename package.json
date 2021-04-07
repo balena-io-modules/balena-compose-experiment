@@ -1,6 +1,6 @@
 {
   "name": "@balena/compose",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Deploy and manage balena multi container applications on edge devices",
   "homepage": "https://github.com/balena-io-modules/balena-compose#readme",
   "main": "build/index.js",
