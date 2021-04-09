@@ -41,6 +41,7 @@
     "@types/mz": "^2.7.3",
     "@types/request": "^2.48.5",
     "@types/sinon": "^9.0.11",
+    "@types/sinon-chai": "^3.2.5",
     "balena-sdk": "^15.30.1",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
@@ -49,13 +50,14 @@
     "mocha": "^7.2.0",
     "rimraf": "^3.0.2",
     "sinon": "^10.0.1",
+    "sinon-chai": "^3.6.0",
     "ts-node": "^8.10.1",
     "typescript": "^3.9.3",
     "winston": "^3.3.3"
   },
   "dependencies": {
     "@types/bluebird": "^3.5.33",
-    "@types/dockerode": "2.5.28",
+    "@types/dockerode": "^2.5.34",
     "@types/lockfile": "^1.0.1",
     "@types/memoizee": "^0.4.5",
     "@types/rwlock": "^5.0.2",
